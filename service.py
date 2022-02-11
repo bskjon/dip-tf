@@ -197,8 +197,11 @@ class service:
 
     def run(self) -> None:
         
-        # Open the fifo. We need to open in non-blocking mode or it will stalls until
-        # someone opens it for writting+
+        # Run before waiting
+        for adapter in self.watchable:
+            self.analyzer(adapter)
+        
+        
 
         while True:
             with open(self.pipe_path, 'r') as fifo:
