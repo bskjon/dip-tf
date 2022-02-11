@@ -1,5 +1,6 @@
 from distutils.log import debug
 from io import TextIOWrapper
+import random
 from threading import Thread
 import json
 import os, sys, time, re
@@ -50,6 +51,16 @@ class Printy:
         sys.stderr.write(tcolor("ERROR\t {}".format(values), "red"))
         sys.stdout.write("\n")
         
+def flipper() -> str:
+    faces: List[str] = [
+        "(╯°□°）╯︵ ┻━┻",
+        "(┛◉Д◉)┛彡┻━┻",
+        "(ノಠ益ಠ)ノ彡┻━┻",
+        
+        "(ノ｀´)ノ ~┻━┻",
+        "┻━┻ ︵ヽ(`Д´)ﾉ︵ ┻━┻"
+    ]
+    return random.choice(faces)
 
 class networkAdapter:
     name: str = None # Network Adapter name
@@ -219,6 +230,7 @@ class service:
         if deviceTable == None:
             print("Failed to obtain route table for device {}".format(adapter.name))
 
+        print(flipper())
         self.deleteRoute(adapter=adapter, table=deviceTable)
         self.addRoute(adapter=adapter, table=deviceTable)
         self.addRule(adapter=adapter, table=deviceTable)
