@@ -1,2 +1,2 @@
 ┻━┻ ︵ヽ(`Д´)ﾉ︵ ┻━┻
-# Dynamic IP - Table Flipper (DIP-TF) (WIP 🚧)
+# Dynamic Routing-table updater (DRU) (WIP 🚧)
