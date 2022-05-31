@@ -1,7 +1,7 @@
 #! /bin/sh
 
-tableOne="ingressOne"
-tableTwo="ingressTwo"
+tableOne="direct0"
+tableTwo="direct1"
 
 interfaceOne="enp1s0f0"
 interfaceTwo="enp1s0f1"
