@@ -68,6 +68,7 @@ class networkAdapter:
     subnet: str = None
     cidr: str = None
     gateway: str = None
+    netmask: str = None # Gateway address but with 0 at the end
 
     def __init__(self, name) -> None:
         self.name = name
@@ -75,6 +76,7 @@ class networkAdapter:
         self.ip = self.getIpAddress()
         self.subnet = self.getSubnet()
         self.cidr = self.getCidr(self.subnet)
+        self.netmask = self.getNetmask()
 
     def getGateway(self) -> Optional[str]:
         gws = netifaces.gateways()
@@ -90,6 +92,16 @@ class networkAdapter:
             except:
                 print("Exception")
                 pass
+        return None
+    
+    def getNetmask(self) -> Optional[str]:
+        try:
+            gw = self.getGateway()
+            netmask = gw[:gw.rfind(".")+1]+"0"
+            return netmask
+        except:
+            print("Exception")
+            pass
         return None
 
     def getIpAddress(self) -> Optional[str]:
@@ -243,7 +255,7 @@ class service:
         if table == None:
             return
         operations: List[str] = [
-            "ip route add {}/{} dev {} src {} table {}".format(adapter.subnet, adapter.cidr, adapter.name, adapter.ip, table),
+            "ip route add {}/{} dev {} src {} table {}".format(adapter.netmask, adapter.cidr, adapter.name, adapter.ip, table),
             "ip route add default via {} dev {} src {} table {}".format(adapter.gateway, adapter.name, adapter.ip, table),
             "ip route add {} dev {} src {} table {}".format(adapter.gateway, adapter.name, adapter.ip, table)
         ]
@@ -277,7 +289,7 @@ class service:
             return
         defaultTable = 'main'
         operations: List[str] = [
-            "ip route del {}/{} dev {} src {} table {}".format(adapter.subnet, adapter.cidr, adapter.name, adapter.ip, defaultTable),
+            "ip route del {}/{} dev {} src {} table {}".format(adapter.netmask, adapter.cidr, adapter.name, adapter.ip, defaultTable),
             "ip route del default via {} dev {} src {} table {}".format(adapter.gateway, adapter.name, adapter.ip, defaultTable),
             "ip route del {} dev {} src {} table {}".format(adapter.gateway, adapter.name, adapter.ip, defaultTable),
             "ip route flush table {}".format(table)
