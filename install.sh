@@ -22,31 +22,39 @@ pip install pyroute2
 systemctl stop dip-table-flipper.service
 systemctl disable dip-table-flipper.service
 
+
 rm /etc/systemd/system/dip-table-flipper.service
 rm /tmp/dipwa
+rm /usr/local/dip-table-flipper
+
+
+systemctl stop dynamic-routing-updater.service
+systemctl disable dynamic-routing-updater.service
+
+rm /etc/systemd/system/dynamic-routing-updater.service
 
 systemctl daemon-reload
 
 sleep 10s
 
-mkdir --parents /usr/local/dip-table-flipper/
-cp ./service.py /usr/local/dip-table-flipper/service.py
-cp ./reference.json /usr/local/dip-table-flipper/reference.json
+mkdir --parents /usr/local/dynamic-routing-updater/
+cp ./service.py /usr/local/dynamic-routing-updater/service.py
+cp ./reference.json /usr/local/dynamic-routing-updater/reference.json
 cp ./dipwa.sh /etc/networkd-dispatcher/routable.d/dipwa.sh
 cp ./dipwa.sh /usr/lib/networkd-dispatcher/routable.d/dipwa.sh
 
-referenceAbsPath="/usr/local/dip-table-flipper/reference.json"
-sed -i "s^reference.json^$referenceAbsPath^g" /usr/local/dip-table-flipper/service.py
+referenceAbsPath="/usr/local/dynamic-routing-updater/reference.json"
+sed -i "s^reference.json^$referenceAbsPath^g" /usr/local/dynamic-routing-updater/service.py
 
 
-cat > /etc/systemd/system/dip-table-flipper.service <<EOL
+cat > /etc/systemd/system/dynamic-routing-updater.service <<EOL
 [Unit]
-Description=Dynamic IP Service - Table Flipper
+Description=Dynamic Routing Updater - Table flipper
 
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/bin/python3 -u /usr/local/dip-table-flipper/service.py
+ExecStart=/usr/bin/python3 -u /usr/local/dynamic-routing-updater/service.py
 Environment=PYTHONUNBUFFERED=1
 
 
@@ -57,13 +65,13 @@ EOL
 chmod 700 /etc/networkd-dispatcher/routable.d/dipwa.sh
 chmod 700 /usr/lib/networkd-dispatcher/routable.d/dipwa.sh
 
-chmod 700 /usr/local/dip-table-flipper/service.py
+chmod 700 /usr/local/dynamic-routing-updater/service.py
 
-chown root:root /usr/local/dip-table-flipper/service.py
+chown root:root /usr/local/dynamic-routing-updater/service.py
 
 systemctl daemon-reload
 
-systemctl enable dip-table-flipper.service
-systemctl start dip-table-flipper.service
+systemctl enable dynamic-routing-updater.service
+systemctl start dynamic-routing-updater.service
 
-systemctl status dip-table-flipper.service
+systemctl status dynamic-routing-updater.service
