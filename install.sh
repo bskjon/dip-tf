@@ -25,7 +25,7 @@ systemctl disable dip-table-flipper.service
 
 rm /etc/systemd/system/dip-table-flipper.service
 rm /tmp/dipwa
-rm /usr/local/dip-table-flipper
+rm -r /usr/local/dip-table-flipper
 
 
 systemctl stop dynamic-routing-updater.service
