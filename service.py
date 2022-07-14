@@ -1,11 +1,13 @@
 from distutils.log import debug
 from io import TextIOWrapper
+from itertools import count
 import random
 from threading import Thread
 import json
 import os, sys, time, re
 
 import errno
+from unicodedata import name
 import netifaces
 from typing import List, Optional
 from threading import Thread
@@ -129,8 +131,8 @@ class networkAdapter:
             pass
         return None
 
-    def print(self):
-        print("\n{}\n\t{}\n\t{}\t/{}\n\t{}".format(self.name, self.ip, self.subnet, self.cidr, self.gateway))
+    def __str__(self):
+        return "\n{}\n\t{}\n\t{}\t/{}\n\t{}".format(self.name, self.ip, self.subnet, self.cidr, self.gateway)
 
 
 class service:
@@ -212,8 +214,6 @@ class service:
         # Run before waiting
         for adapter in self.watchable:
             self.analyzer(adapter)
-        
-        
 
         while True:
             with open(self.pipe_path, 'r') as fifo:
@@ -233,10 +233,56 @@ class service:
         if (interface in adapters):
             Printy.info("Changes to {} detected!".format(interface))
             adapter = networkAdapter(interface)
-            self.modify(adapter=adapter)
+            if (self.hasValidEntries(adapter=adapter)):
+                self.modify(adapter=adapter)
+            else:
+                print(interface, "invalid or incomplete values found, starting pulling for interface")
+                self.addUnavailablePuller(interface=interface)
         else:
             Printy.info("\033[93m Unrecognized data passed: {}".format(interface))
             return
+
+    def hasValidEntries(self, adapter: networkAdapter) -> bool:
+        if (
+            adapter.ip == None or
+            adapter.subnet == None or
+            adapter.cidr == None or
+            adapter.gateway == None or
+            adapter.netmask == None # Gateway address but with 0 at the end
+        ):
+            print("One or more values are invalid..")
+            print(adapter)
+            return False
+        else:
+            return True
+
+
+    pullingThread: List[Thread] = []
+    def addUnavailablePuller(self, interface: str) -> None:
+        if count(filter(lambda x: x.name == interface, self.pullingThread)) != 0:
+            return
+        thread = Thread(
+            name=interface,
+            target=self.availabilityPuller,
+            args=(interface)
+        )
+        self.pullingThread.append(thread)
+        thread.start
+            
+    def availabilityPuller(self, interface: str):
+        delayTime: int = 60
+        print("Pulling availability on", interface)
+        time.sleep(delayTime)
+        interfaceAdapter = networkAdapter(interface)
+        while(self.hasValidEntries(interfaceAdapter) == False):
+            print(interface, "still has invalid values. Waiting another", delayTime, "seconds")
+            time.sleep(delayTime)
+        print(interface, "has valid values, returning to normal flow")
+        self.analyzer(interface=interface)
+        thisThread = filter(lambda x: x.name == interface, self.pullingThread)
+        if thisThread in self.pullingThread:
+            self.pullingThread.remove(thisThread)
+
 
     def modify(self, adapter: networkAdapter) -> None:
         print("Modifing routing for", adapter.name)
@@ -246,6 +292,7 @@ class service:
             print("Failed to obtain route table for device {}".format(adapter.name))
 
         print(flipper())
+        
         self.deleteRoute(adapter=adapter, table=deviceTable)
         self.addRoute(adapter=adapter, table=deviceTable)
         self.addRule(adapter=adapter, table=deviceTable)
