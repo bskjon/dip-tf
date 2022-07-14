@@ -259,7 +259,7 @@ class service:
 
     pullingThread: List[Thread] = []
     def addUnavailablePuller(self, interface: str) -> None:
-        if count(filter(lambda x: x.name == interface, self.pullingThread)) != 0:
+        if len(list(filter(lambda x: x.name == interface, self.pullingThread))) != 0:
             return
         thread = Thread(
             name=interface,
