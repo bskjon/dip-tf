@@ -265,7 +265,7 @@ class service:
         thread = Thread(
             name=interface,
             target=self.availabilityPuller,
-            args=(interface)
+            args=(interface,)
         )
         self.pullingThread.append(thread)
         print("Starting pulling thread for ", interface)
