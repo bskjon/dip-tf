@@ -271,17 +271,18 @@ class service:
             
     def availabilityPuller(self, interface: str):
         delayTime: int = 60
-        print("Pulling availability on", interface)
+        Printy.info("Pulling availability on {}".format(interface))
         time.sleep(delayTime)
         interfaceAdapter = networkAdapter(interface)
         while(self.hasValidEntries(interfaceAdapter) == False):
-            print(interface, "still has invalid values. Waiting another", delayTime, "seconds")
+            Printy.info("{} still has invalid values. Waiting another {}seconds".format(interface, delayTime))
             time.sleep(delayTime)
-        print(interface, "has valid values, returning to normal flow")
-        self.analyzer(interface=interface)
+        Printy.info("{} has valid values, returning to normal flow".format(interface))
         thisThread = filter(lambda x: x.name == interface, self.pullingThread)
         if thisThread in self.pullingThread:
             self.pullingThread.remove(thisThread)
+        self.analyzer(interface=interface)
+            
 
 
     def modify(self, adapter: networkAdapter) -> None:
