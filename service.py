@@ -260,6 +260,7 @@ class service:
     pullingThread: List[Thread] = []
     def addUnavailablePuller(self, interface: str) -> None:
         if len(list(filter(lambda x: x.name == interface, self.pullingThread))) != 0:
+            print("Fount existing thread for", interface, "skipping..")
             return
         thread = Thread(
             name=interface,
@@ -267,7 +268,8 @@ class service:
             args=(interface)
         )
         self.pullingThread.append(thread)
-        thread.start
+        print("Starting pulling thread for ", interface)
+        thread.start()
             
     def availabilityPuller(self, interface: str):
         delayTime: int = 60
