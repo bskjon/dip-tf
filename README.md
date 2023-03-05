@@ -50,7 +50,7 @@ Usually a reboot is enough to get it recreated, as the code does not include per
 # How to install
 To install and start DRU
 Clone the project or just copy the contents from `install.sh` </br>
-Make sure that you run the script with sudo or as root, as the script needs access.
+Make sure that you run the script with sudo or as root, as the script needs access. <br>
 
 
 <br>
