@@ -50,10 +50,10 @@ class _DynamicIpWatcherAction:
     def dryrun(self) -> None:
         """Runs all operations on defined interfaces
         """
-        self.stdout("Dryrun started!\n")
+        self.stdout("DIPWA Dryrun started!\n")
         for nic in self.nics:
             self.__processMessage(nic)
-        self.stdout("\nDryrun completed!\n")
+        self.stdout("\nDIPWA Dryrun completed!\n")
         
     def stop(self) -> None:
         """

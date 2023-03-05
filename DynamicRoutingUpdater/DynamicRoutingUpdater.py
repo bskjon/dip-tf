@@ -35,13 +35,13 @@ class DynamicRoutingUpdater:
         ]
         return random.choice(faces)
     
-    def __init__(self) -> None:
+    def __init__(self, reference: str = "reference.json") -> None:
         """
         """
         sys.stdout.write(f"{self.flipper()}\n")
         sys.stdout.write("Loading up Dynamic Routing Updater\n")
         sys.stdout.write("Reading configuration\n")
-        reference = json.load(open("reference.json"))
+        reference = json.load(open(reference))
         self.nics.extend(reference["adapter"])
         desiredTableName: str = reference["tableName"]
         if desiredTableName != "":
@@ -125,6 +125,23 @@ class DynamicRoutingUpdater:
         sys.stdout.write("Starting DIPWA\n")
         self.dipwa = _DynamicIpWatcherAction(self.nics, self.configuredTables)
         self.dipwa.start()
+        
+    def dryrun(self) -> None:
+        """
+        """
+        
+        sys.stdout.write("Starting DRU dryrun\n")
+        sys.stdout.write("Updating and preparing Routing Table entries\n")
+        self.addDruTableEntries()
+        
+        if len(self.nics) == 0 or len(self.configuredTables) == 0:
+            sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
+            return
+        
+        sys.stdout.write("Starting DIPWA\n")
+        self.dipwa = _DynamicIpWatcherAction(self.nics, self.configuredTables)
+        self.dipwa.dryrun()
+        sys.stdout.write("\nDRU dryrun ended\n")
         
     def __stop(self, sig, _):
         sys.stdout.write(f"Signal {sig} received. Cleaning up and exiting gracefully...\n")

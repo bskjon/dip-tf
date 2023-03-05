@@ -21,13 +21,20 @@ rm /etc/systemd/system/dynamic-routing-updater.service
 systemctl daemon-reload
 
 mkdir --parents /usr/local/dynamic-routing-updater/
-cp ./service.py /usr/local/dynamic-routing-updater/service.py
-cp ./reference.json /usr/local/dynamic-routing-updater/reference.json
 
+echo "Creating DRU Service runner"
+cat > /usr/local/dynamic-routing-updater/service.py <<EOL
+from DynamicRoutingUpdater import DynamicRoutingUpdater
+reference = "reference.json"
+service = DynamicRoutingUpdater()
+service.start()
+EOL
+
+cp ./reference.json /usr/local/dynamic-routing-updater/reference.json
 referenceAbsPath="/usr/local/dynamic-routing-updater/reference.json"
 sed -i "s^reference.json^$referenceAbsPath^g" /usr/local/dynamic-routing-updater/service.py
 
-
+echo "Creating DIPWA"
 tee > (cat > /etc/networkd-dispatcher/routable.d/dipwa.sh) > (cat > /usr/lib/networkd-dispatcher/routable.d/dipwa.sh)  <<EOL
 #!/bin/sh
 
@@ -49,7 +56,7 @@ then
 fi
 EOL
 
-
+echo "Creating DRU Service"
 cat > /etc/systemd/system/dynamic-routing-updater.service <<EOL
 [Unit]
 Description=Dynamic Routing Updater - Table flipper
@@ -83,3 +90,5 @@ systemctl enable dynamic-routing-updater.service
 systemctl start dynamic-routing-updater.service
 
 systemctl status dynamic-routing-updater.service
+
+echo "Done!"
