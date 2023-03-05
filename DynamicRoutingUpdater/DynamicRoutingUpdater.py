@@ -1,6 +1,7 @@
 from io import TextIOWrapper
 import json
 import random
+import signal
 from threading import Thread
 import threading
 from typing import List
@@ -52,6 +53,8 @@ class DynamicRoutingUpdater:
         sys.stdout.write("Dynamic Routing Updater will watch the following:\n")
         for toWatch in self.nics:
             sys.stdout.write(f"\t{toWatch}\n")    
+        
+        signal.signal(signal.SIGINT, self.__stop)
     
     def getRoutingTable(self) -> List[str]:
         """Read routing table to list
@@ -122,6 +125,10 @@ class DynamicRoutingUpdater:
         sys.stdout.write("Starting DIPWA\n")
         self.dipwa = _DynamicIpWatcherAction(self.nics, self.configuredTables)
         self.dipwa.start()
+        
+    def __stop(self, sig, _):
+        sys.stdout.write(f"Signal {sig} received. Cleaning up and exiting gracefully...\n")
+        self.stop()
         
     def stop(self) -> None:
         self.dipwa.stop()
