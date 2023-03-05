@@ -59,9 +59,10 @@ class DynamicRoutingUpdater:
         rt_entries: List[str] = []
         rt: TextIOWrapper = open("/etc/iproute2/rt_tables", "r")
         for i, line in enumerate(rt):
-            if len(line) > 0:
+            if len(line.strip("\n")) > 0:
                 rt_entries.append(line.strip("\n"))
-            sys.stdout.write("Skipping empty line in rt_tables!\n")
+            else:
+                sys.stdout.write("Skipping empty line in rt_tables!\n")
         rt.close()
         return rt_entries
     
