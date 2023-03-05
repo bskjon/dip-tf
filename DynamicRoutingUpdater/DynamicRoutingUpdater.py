@@ -57,13 +57,13 @@ class DynamicRoutingUpdater:
         """Read routing table to list
         """
         rt_entries: List[str] = []
-        rt: TextIOWrapper = open("/etc/iproute2/rt_tables", "r")
-        for i, line in enumerate(rt):
-            if len(line.strip("\n")) > 0:
-                rt_entries.append(line.strip("\n"))
-            else:
-                sys.stdout.write("Skipping empty line in rt_tables!\n")
-        rt.close()
+        
+        with open("/etc/iproute2/rt_tables", "r") as rt_tables:
+            for line in rt_tables:
+                if len(line.strip("\t\r\n")) > 0:
+                    rt_entries.append(line.strip("\n"))
+                else:
+                    sys.stdout.write("Skipping empty line in rt_tables!\n")
         return rt_entries
     
     def removeDruTableEntries(self) -> None:
