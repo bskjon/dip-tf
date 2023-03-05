@@ -58,6 +58,8 @@ class _DynamicIpWatcherAction:
     def stop(self) -> None:
         """
         """
+        with open(self.pipe_path, 'w') as fifo:
+            fifo.write('stop')
         self.stopFlag.set()
         self.dipwaThread.join()
         
@@ -80,6 +82,8 @@ class _DynamicIpWatcherAction:
                 if message and message in self.nics:
                     self.stdout(f"Received valid message: {message}")
                     self.__processMessage(message)
+                elif message == "stop":
+                    self.stdout(f"Received fifo stop: {message}")
                 else:
                     self.stderr(f"Received invalid message: {message}")
             time.sleep(2.5)
