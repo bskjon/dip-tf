@@ -32,7 +32,7 @@ class _DynamicIpWatcherAction:
         self.nics.extend(nics)
         self.nics_rt = nics_rt
             
-    def start(self) -> Thread:
+    def start(self) -> None:
         """Starts Thread that opens pipe and watches it for changes
         Returns:
             Thread: dipwaThread that has been started
