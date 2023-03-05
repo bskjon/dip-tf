@@ -109,15 +109,15 @@ class DynamicRoutingUpdater:
     def start(self) -> None:
         """
         """
+        sys.stdout.write("Updating and preparing Routing Table entries\n")
+        self.addDruTableEntries()
+        
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
             sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
             return
         
-        sys.stdout.write("Updating and preparing Routing Table entries\n")
-        self.addDruTableEntries()
-        
         sys.stdout.write("Starting DIPWA\n")
-        self.dipwa = __DynamicIpWatcherAction(self.nics, self.configuredTables)
+        self.dipwa = _DynamicIpWatcherAction(self.nics, self.configuredTables)
         self.dipwa.start()
         
     def stop(self) -> None:
