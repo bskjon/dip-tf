@@ -59,7 +59,7 @@ class DynamicRoutingUpdater:
         rt_entries: List[str] = []
         rt: TextIOWrapper = open("/etc/iproute2/rt_tables", "r")
         for i, line in enumerate(rt):
-            rt_entries.append(line)
+            rt_entries.append(line.strip("\n"))
         rt.close()
         return rt_entries
     
@@ -86,7 +86,7 @@ class DynamicRoutingUpdater:
         self.removeDruTableEntries()
         acceptableTableIds = list(range(0, 255))
         activeTablesCheck = re.compile(r"^(?!#)[0-9]+")
-        for i, line in self.getRoutingTable():
+        for line in self.getRoutingTable():
             activeIds = activeTablesCheck.findall(line)
             if len(activeIds) > 0:
                 activeId = int(activeIds[0])
