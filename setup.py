@@ -3,7 +3,7 @@ import os
 from setuptools import setup
 
 def readme():
-    with open('README.md') as f:
+    with open('README.md', encoding='utf-8') as f:
         return f.read()
 
 setup(
@@ -25,10 +25,10 @@ setup(
     url="https://github.com/bskjon/DynamicRoutingUpdater",
     classifiers=[
         "Intended Audience :: Developers",
-        "Operating System :: OS Linux",
+        "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Topic :: Routing table",
+        "Topic :: System :: Networking",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
 )
