@@ -37,7 +37,7 @@ class _DynamicIpWatcherAction:
         Returns:
             Thread: dipwaThread that has been started
         """
-        self.dipwaThread = threading.Thread(target=self.__onThreadStart())
+        self.dipwaThread = threading.Thread(target=self.__onThreadStart)
         self.dipwaThread.start()
         
     def stop(self) -> None:
