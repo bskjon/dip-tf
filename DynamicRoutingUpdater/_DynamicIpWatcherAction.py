@@ -47,6 +47,14 @@ class _DynamicIpWatcherAction:
         self.dipwaThread = threading.Thread(target=self.__onThreadStart)
         self.dipwaThread.start()
         
+    def dryrun(self) -> None:
+        """Runs all operations on defined interfaces
+        """
+        self.stdout("Dryrun started!")
+        for nic in self.nics:
+            self.__processMessage(nic)
+        self.stdout("Dryrun completed!")
+        
     def stop(self) -> None:
         """
         """
@@ -70,11 +78,13 @@ class _DynamicIpWatcherAction:
             with open(self.pipe_path, 'r') as fifo:
                 message = fifo.read().strip("\n")
                 if message and message in self.nics:
-                    self.stdout(f"Recieved valid message: {message}")
+                    self.stdout(f"Received valid message: {message}")
                     self.__processMessage(message)
                 else:
-                    self.stderr(f"Recieved invalid message: {message}")
+                    self.stderr(f"Received invalid message: {message}")
             time.sleep(2.5)
+        self.stdout(f"Pipe is closed!")
+        
     
     def __processMessage(self, nic: str) -> None:
         if (nic not in netifaces.interfaces()):
