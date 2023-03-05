@@ -70,7 +70,7 @@ class DynamicRoutingUpdater:
         """Removes DRU created routing table entries
         """    
         escapedTableName = re.escape(self.tableName)
-        directTable = re.compile(r"(?<!\d)\s+{}[0-9]+(?!\w)".format(escapedTableName), re.IGNORECASE)
+        directTable = re.compile(r"[0-9]+\t{}[0-9]+(?!\w)".format(escapedTableName), re.IGNORECASE)
                 
         sys.stdout.write("Removing old tables..\n")
         updatedTables: List[str] = []
