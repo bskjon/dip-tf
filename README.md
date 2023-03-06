@@ -49,13 +49,19 @@ Usually a reboot is enough to get it recreated, as the code does not include per
 
 # How to install
 To install and start DRU
-Clone the project or just copy the contents from `install.sh` </br>
+- Clone the project 
+- Modify reference.json
+ - `./install.sh` 
+
+</br>
 Make sure that you run the script with sudo or as root, as the script needs access. <br>
-Or you can use the following:
+
+Or you can do the following:
 ```shell
 curl -sSL -o install.sh https://raw.githubusercontent.com/bskjon/DynamicRoutingUpdater/master/install.sh
 sudo bash install.sh
 ```
+This will request you to define table name and select interface thrould selection.
 
 
 <br>
