@@ -51,6 +51,10 @@ Usually a reboot is enough to get it recreated, as the code does not include per
 To install and start DRU
 Clone the project or just copy the contents from `install.sh` </br>
 Make sure that you run the script with sudo or as root, as the script needs access. <br>
+Or you can use the following:
+```shell
+curl -sSL https://raw.githubusercontent.com/bskjon/DynamicRoutingUpdater/master/install.sh | bash
+```
 
 
 <br>
