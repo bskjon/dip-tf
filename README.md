@@ -53,7 +53,8 @@ Clone the project or just copy the contents from `install.sh` </br>
 Make sure that you run the script with sudo or as root, as the script needs access. <br>
 Or you can use the following:
 ```shell
-curl -sSL https://raw.githubusercontent.com/bskjon/DynamicRoutingUpdater/master/install.sh | bash
+curl -sSL -o install.sh https://raw.githubusercontent.com/bskjon/DynamicRoutingUpdater/master/install.sh
+sudo bash install.sh
 ```
 
 
