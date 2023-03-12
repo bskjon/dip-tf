@@ -300,7 +300,7 @@ class RoutingManager:
             If there is a different ruting table than main, you will need to pass it here
             For removing routes on the default table keep "main" or replace it with the correct one
         """
-        self.stdout(f"Deleting rules on routing table {tableName}")
+        self.stdout(f"Deleting routes on routing table {tableName}")
         if not tableName:
             raise Exception("Routing table name is not preset")
         operations: List[str] = [

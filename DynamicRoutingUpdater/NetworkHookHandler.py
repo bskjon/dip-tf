@@ -13,7 +13,7 @@ class NetworkHookHandler:
     """
     """
     __mainThread = threading.current_thread
-    dipwaThread: Thread = None
+    hookThreads: List[Thread] = []
     pipe_path = "/tmp/dru-hook"
     
     stopFlag = threading.Event()
@@ -44,8 +44,11 @@ class NetworkHookHandler:
         Returns:
             Thread: DruHookThread that has been started
         """
-        self.dipwaThread = threading.Thread(target=self.__onThreadStart)
-        self.dipwaThread.start()
+        for nic in self.nics:
+            _hthread = threading.Thread(target=self.__onThreadStart, kwargs={'targetName': nic})
+            self.hookThreads.append(_hthread)
+            _hthread.start()
+    
         
     def dryrun(self) -> None:
         """Runs all operations on defined interfaces
@@ -61,40 +64,37 @@ class NetworkHookHandler:
         with open(self.pipe_path, 'w') as fifo:
             fifo.write('stop')
         self.stopFlag.set()
-        self.dipwaThread.join()
+        for thread in self.hookThreads:
+            thread.join()
         
-    def __onThreadStart(self) -> None:
+    def __onThreadStart(self, targetName: str) -> None:
         """
         """
         if self.__mainThread == threading.current_thread():
             self.stderr("DRUHook has not been started in a separete thread!")
             raise Exception("DRUHook is started in main thread!")
-        self.stdout("DRUHook Thread Started")
-        self.__openPipe()
+        self.stdout(f"DRUHook Thread Started for {targetName}")
+        self.__openPipe(targetName=targetName)
         
-    def __openPipe(self) -> None:
+    def __openPipe(self, targetName: str) -> None:
         """_summary_
         """
-        self.stdout(f"Opening pipe on {self.pipe_path}")
+        self.stdout(f"Opening pipe on {self.pipe_path} and is monitoring for {targetName} or stop")
         while not self.stopFlag.is_set():
             with open(self.pipe_path, 'r') as fifo:
                 message = fifo.read().strip("\n")
-                if message and message in self.nics:
-                    self.stdout(f"Received valid message: {message}")
+                if (message and message in self.nics) and (message == targetName):
+                    self.stdout(f"DRUHook Received message from hook: {message}")
                     self.__processMessage(message)
                 elif message == "stop":
-                    self.stdout(f"Received fifo stop: {message}")
+                    self.stdout(f"DRUHook Received fifo stop: {message}")
                 else:
-                    self.stderr(f"Received invalid message: {message}")
+                    self.stderr(f"DRUHook is ignoring: {message} as it expects either {targetName} or stop")
             time.sleep(2.5)
         self.stdout(f"Pipe is closed!")
         
     
     def __processMessage(self, nic: str) -> None:
-        if (nic not in netifaces.interfaces()):
-            self.stdout(f"Message contains non nic value: {nic}")
-            return
-        self.stdout(f"Message indicates that there has been changes to nic: {nic}")
         adapter = NetworkAdapter(nic)
         if (adapter.isValid()):
             self.__routingTable_modify(adapter)
