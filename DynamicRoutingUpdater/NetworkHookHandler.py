@@ -143,8 +143,8 @@ class NetworkHookHandler:
         
         route_manager = RoutingManager()
         route_manager.flushTable(tableName=nic_rt_table)
-        route_manager.deleteRoute(adapter=adapter)
-        route_manager.deleteRoute(adapter=adapter, tableName=nic_rt_table)
+        #route_manager.deleteRoute(adapter=adapter)
+        #route_manager.deleteRoute(adapter=adapter, tableName=nic_rt_table)
         
 
         route_manager.addRoute(adapter=adapter, tableName=nic_rt_table)
