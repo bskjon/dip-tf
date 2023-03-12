@@ -67,7 +67,8 @@ class NetworkHookHandler:
                 elif message == "stop":
                     self.stdout(f"DRUHook Received fifo stop: {message}")
                 else:
-                    self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
+                    if len(message) > 0:
+                        self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
             #time.sleep(2.5)
         self.stdout(f"Pipe is closed!")
         
