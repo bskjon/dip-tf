@@ -121,6 +121,7 @@ class DynamicRoutingUpdater:
     def setRoutingRules(self) -> None:
         """
         """
+        sys.stdout.write("Defining Incoming and Outgoing rules for defined interfaces and routing tables\n")
         manager = RoutingManager()
         for net, table in self.configuredTables.items():
             manager.setIncomingRule(net, table)

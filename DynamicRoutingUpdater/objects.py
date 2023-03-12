@@ -222,6 +222,7 @@ class RoutingManager:
         sys.stderr.flush() 
     
     def setIncomingRule(self, adapterName: str, tableName: str) -> None:
+        self.stdout(f"Setting all Incoming@{adapterName} => {tableName}")
         operations: List[str] = [
             "ip rule add iif {} table {}".format(adapterName, tableName)
         ]
@@ -234,6 +235,7 @@ class RoutingManager:
                 self.stderr(f"OK: {operation}")
         
     def setOutgoingRule(self, adapterName: str, tableName: str) -> None:
+        self.stdout(f"Setting all Outgoing@{adapterName} => {tableName}")
         operations: List[str] = [
             "ip rule add oif {} table {}".format(adapterName, tableName)
         ]
