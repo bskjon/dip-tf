@@ -184,7 +184,7 @@ class RouteInfo:
         
     def hasValidRoutes(self) -> bool:
         addri = AddressInfo(self.adapterName)
-        return len(self.routes) >= 2 and all(x == addri.ip_address for x in self.routes)
+        return len(self.routes) >= 2 and all(x.prefsrc == addri.ip_address for x in self.routes)
     
             
 #  [{"addr_info":[{"index":4,"dev":"internet","family":"inet","local":"193.69.230.53","prefixlen":21,"metric":100,"broadcast":"193.69.231.255","scope":"global","dynamic":true,"label":"internet","valid_life_time":436,"preferred_life_time":436}]}]
