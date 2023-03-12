@@ -51,7 +51,7 @@ class NetworkInfoWatcher:
             # Run check on the routes    
             routeInfo = RouteInfo(name, table)
             if (routeInfo.hasValidRoutes() == False):
-                self.__shiftRouting(name=name,table=table)
+                self.__shiftRouting(adapter=name,table=table)
             
             try:
                 time.sleep(sleep_time)
