@@ -1,8 +1,8 @@
 from io import TextIOWrapper
-import json
-import random
+import json, random
 from threading import Thread
 import threading
+import queue
 from typing import List
 from .objects import NetworkAdapter, RoutingManager
 import os, sys, time, re, errno
@@ -13,6 +13,17 @@ class NetworkHookHandler:
     """
     """
     __mainThread = threading.current_thread
+    
+    # Create a queue to hold messages received from the pipe
+    message_queue = queue.Queue()
+
+    # Create a mutex to coordinate access to the queue
+    message_mutex = threading.Lock()
+    
+    # Create a condition variable to notify waiting threads of new messages
+    message_cond = threading.Condition(message_mutex)
+    
+    
     hookThreads: List[Thread] = []
     pipe_path = "/tmp/dru-hook"
     
@@ -39,11 +50,38 @@ class NetworkHookHandler:
         sys.stderr.write(f"{out}\n")
         sys.stderr.flush()
             
+            
+    def __openPipe(self) -> None:
+        """_summary_
+        """
+        self.stdout(f"Opening pipe on {self.pipe_path}")
+        with open(self.pipe_path, 'r') as fifo:
+            while not self.stopFlag.is_set():
+                message = fifo.readline().strip("\n")
+                if (message and message in self.nics):
+                    self.stdout(f"DRUHook Received message from hook: {message}")
+                    with self.message_mutex:
+                        self.message_queue.put(message)
+                        self.message_cond.notify_all()
+                        
+                elif message == "stop":
+                    self.stdout(f"DRUHook Received fifo stop: {message}")
+                elif len(message) == 0:
+                    self.stderr(f"DRUHook received empty message.. ignoring")
+                else:
+                    self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
+            #time.sleep(2.5)
+        self.stdout(f"Pipe is closed!")
+        
+            
     def start(self) -> None:
         """Starts Thread that opens pipe and watches it for changes
         Returns:
             Thread: DruHookThread that has been started
         """
+        _pthread = threading.Thread(target=self.__openPipe)
+        self.hookThreads.append(_pthread)
+        _pthread.start()
         for nic in self.nics:
             _hthread = threading.Thread(target=self.__onThreadStart, kwargs={'targetName': nic})
             self.hookThreads.append(_hthread)
@@ -74,27 +112,14 @@ class NetworkHookHandler:
             self.stderr("DRUHook has not been started in a separete thread!")
             raise Exception("DRUHook is started in main thread!")
         self.stdout(f"DRUHook Thread Started for {targetName}")
-        self.__openPipe(targetName=targetName)
-        
-    def __openPipe(self, targetName: str) -> None:
-        """_summary_
-        """
-        self.stdout(f"Opening pipe on {self.pipe_path} and is monitoring for {targetName} or stop")
         while not self.stopFlag.is_set():
-            with open(self.pipe_path, 'r') as fifo:
-                message = fifo.read().strip("\n")
-                if (message and message in self.nics) and (message == targetName):
-                    self.stdout(f"DRUHook Received message from hook: {message}")
+            with self.message_mutex:
+                while self.message_queue.empty():
+                    self.message_cond.wait()
+                message = self.message_queue.get()
+                if message == targetName:
                     self.__processMessage(message)
-                elif message == "stop":
-                    self.stdout(f"DRUHook Received fifo stop: {message}")
-                elif len(message) == 0:
-                    self.stderr(f"DRUHook received empty message.. ignoring")
-                else:
-                    self.stderr(f"DRUHook is ignoring: {message} as it expects either {targetName} or stop")
-            time.sleep(2.5)
-        self.stdout(f"Pipe is closed!")
-        
+                 
     
     def __processMessage(self, nic: str) -> None:
         adapter = NetworkAdapter(nic)
