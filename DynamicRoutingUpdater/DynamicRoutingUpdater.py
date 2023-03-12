@@ -138,7 +138,7 @@ class DynamicRoutingUpdater:
             sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
             return
         
-        sys.stdout.write("Starting DIPWA\n")
+        sys.stdout.write("Starting DRUHook\n")
         self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
         self.dipwa.start()
         self.niw = NetworkInfoWatcher(self.configuredTables)
@@ -158,7 +158,7 @@ class DynamicRoutingUpdater:
             sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
             return
         
-        sys.stdout.write("Starting DIPWA\n")
+        sys.stdout.write("Starting DRUHook\n")
         self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
         self.dipwa.dryrun()
         sys.stdout.write("\nDRU dryrun ended\n")
@@ -170,4 +170,4 @@ class DynamicRoutingUpdater:
     def stop(self) -> None:
         self.dipwa.stop()
         self.removeDruTableEntries()
-        sys.stdout.write("Stopped DIPWA and removed created Routing Table entries\n")
+        sys.stdout.write("Stopped DRUHook and removed created Routing Table entries\n")

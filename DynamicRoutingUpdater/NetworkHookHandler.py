@@ -14,7 +14,7 @@ class NetworkHookHandler:
     """
     __mainThread = threading.current_thread
     dipwaThread: Thread = None
-    pipe_path = "/tmp/dipwa"
+    pipe_path = "/tmp/dru-hook"
     
     stopFlag = threading.Event()
     
@@ -42,7 +42,7 @@ class NetworkHookHandler:
     def start(self) -> None:
         """Starts Thread that opens pipe and watches it for changes
         Returns:
-            Thread: dipwaThread that has been started
+            Thread: DruHookThread that has been started
         """
         self.dipwaThread = threading.Thread(target=self.__onThreadStart)
         self.dipwaThread.start()
@@ -50,10 +50,10 @@ class NetworkHookHandler:
     def dryrun(self) -> None:
         """Runs all operations on defined interfaces
         """
-        self.stdout("DIPWA Dryrun started!\n")
+        self.stdout("DRUHook Dryrun started!\n")
         for nic in self.nics:
             self.__processMessage(nic)
-        self.stdout("\nDIPWA Dryrun completed!\n")
+        self.stdout("\DRUHook Dryrun completed!\n")
         
     def stop(self) -> None:
         """
@@ -67,9 +67,9 @@ class NetworkHookHandler:
         """
         """
         if self.__mainThread == threading.current_thread():
-            self.stderr("DIPWA has not been started in a separete thread!")
-            raise Exception("DIPWA is started in main thread!")
-        self.stdout("DIPWA Thread Started")
+            self.stderr("DRUHook has not been started in a separete thread!")
+            raise Exception("DRUHook is started in main thread!")
+        self.stdout("DRUHook Thread Started")
         self.__openPipe()
         
     def __openPipe(self) -> None:

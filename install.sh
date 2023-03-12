@@ -131,22 +131,21 @@ from DynamicRoutingUpdater import DynamicRoutingUpdater
 reference = "reference.json"
 service = DynamicRoutingUpdater(reference)
 service.start()
-service.dryrun()
 EOL
 
 cp ./reference.json /usr/local/dynamic-routing-updater/reference.json
 referenceAbsPath="/usr/local/dynamic-routing-updater/reference.json"
 sed -i "s^reference.json^$referenceAbsPath^g" /usr/local/dynamic-routing-updater/service.py
 
-echo "Creating DIPWA"
+echo "Creating DRUHook"
 
 echo '
 #! /bin/bash
 
-# Dynamic Ip Watcher Action (DIPWA)
+# Dynamic Routing Updater Hook (DRUHook)
 # A component of DynamicRoutingUpdater
 # 
-# The purpose of Dipwa is to be notified by the system when there are changes to net network interface
+# The purpose of DRUHook is to be notified by the system when there are changes to net network interface
 # If this script is placed correctly inside a hook folder for the network manager, 
 # the network manager will call up this script whith the interface that has been updated or altered
 #
@@ -161,8 +160,8 @@ echo "DynamicIpWatcherAction: Registered change to network adpater $IFACE"
 
 if [ ! -z $IFACE ]
 then
-    echo $IFACE > /tmp/dipwa
-fi' | tee /etc/networkd-dispatcher/routable.d/dipwa.sh > /usr/lib/networkd-dispatcher/routable.d/dipwa.sh > /etc/NetworkManager/dispacher.d/dipwa.sh 
+    echo $IFACE > /tmp/dru-hook
+fi' | tee /etc/networkd-dispatcher/routable.d/dru-hook.sh > /usr/lib/networkd-dispatcher/routable.d/dru-hook.sh > /etc/NetworkManager/dispacher.d/dru-hook.sh 
 
 
 
@@ -185,9 +184,9 @@ WantedBy=multi-user.target
 EOL
 
 CHMOD_FILES=(
-    "/etc/networkd-dispatcher/routable.d/dipwa.sh"
-    "/usr/lib/networkd-dispatcher/routable.d/dipwa.sh"
-    "/etc/NetworkManager/dispacher.d/dipwa.sh"
+    "/etc/networkd-dispatcher/routable.d/dru-hook.sh"
+    "/usr/lib/networkd-dispatcher/routable.d/dru-hook.sh"
+    "/etc/NetworkManager/dispacher.d/dru-hook.sh"
     "/usr/local/dynamic-routing-updater/service.py"
 )
 

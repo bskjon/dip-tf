@@ -31,7 +31,7 @@ When DRU gets the start call, it will do the following:
 - Define table id and name for all network adapters added
 - Write the newly filtered and appended routing table
 
-After DRU has started, and processed the routing table, it will start up DIPWA. <br>
+After DRU has started, and processed the routing table, it will start up DRUHook. <br>
 This is a sub component of DRU, which is intended to watch the network interfaces assigned to DRU and perform routing changes on them.<br>
 
 If you want to test DRU out, you can do the following

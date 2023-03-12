@@ -60,7 +60,7 @@ class NetworkInfoWatcher:
             routeInfo = RouteInfo(name, table)
             if (routeInfo.hasValidRoutes() == False):
                 try:
-                    with open("/tmp/dipwa", 'w') as fifo:
+                    with open("/tmp/dru-hook", 'w') as fifo:
                         fifo.write(name)
                 except:
                     self.stderr("Failed to adjust routes..")
