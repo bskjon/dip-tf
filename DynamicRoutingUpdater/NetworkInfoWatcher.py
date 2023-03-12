@@ -61,7 +61,7 @@ class NetworkInfoWatcher:
             if (routeInfo.hasValidRoutes() == False):
                 try:
                     with open("/tmp/dipwa", 'w') as fifo:
-                        fifo.write('stop')
+                        fifo.write(name)
                 except:
                     self.stderr("Failed to adjust routes..")
             
