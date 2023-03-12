@@ -5,6 +5,7 @@ import sys, os, re, errno, json
 from typing import List
 import json
 import subprocess
+from datetime import datetime
 
 
 class NetworkAdapter:
@@ -14,6 +15,7 @@ class NetworkAdapter:
     cidr: str = None
     gateway: str = None
     netmask: str = None # Gateway address but with 0 at the end
+    timeOfCreated: str = "Never set!"
 
     def __init__(self, name) -> None:
         self.name = name
@@ -22,6 +24,8 @@ class NetworkAdapter:
         self.subnet = self.getSubnet()
         self.cidr = self.getCidr(self.subnet)
         self.netmask = self.getNetmask()
+        self.timeOfCreated = datetime.now().strftime("%H:%M:%S %d.%m.%Y")
+        
 
     def getGateway(self) -> Optional[str]:
         gws = netifaces.gateways()
@@ -94,7 +98,7 @@ class NetworkAdapter:
             return True
 
     def __str__(self):
-        return "\n{}\n\t{}\n\t{}\t/{}\n\t{}".format(self.name, self.ip, self.subnet, self.cidr, self.gateway)
+        return "\n{}\n\t{}\n\t{}\t/{}\n\t{}\n\t{}".format(self.name, self.ip, self.subnet, self.cidr, self.gateway, self.timeOfCreated)
 
 
 class AddressInfo:

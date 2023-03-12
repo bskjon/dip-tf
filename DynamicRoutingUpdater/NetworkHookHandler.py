@@ -126,7 +126,7 @@ class NetworkHookHandler:
         """
         waitTime: int = 60
         if len(list(filter(lambda x: x.name == nic, self.nicsPullerThreads))) != 0:
-            self.stdout(f"Fount existing thread for {nic} skipping..")
+            self.stdout(f"Found existing thread for {nic} skipping..")
             return
         thread = Thread(
             name=nic,
@@ -152,7 +152,8 @@ class NetworkHookHandler:
         while isInInvalidState:
             time.sleep(waitTime)
             adapter = NetworkAdapter(nic)
-            isInInvalidState != adapter.isValid()
+            isInInvalidState = not adapter.isValid()
+            print(adapter)
             if (isInInvalidState == False):
                 self.__puller_remove(nic)
                 self.__routingTable_modify(adapter)
