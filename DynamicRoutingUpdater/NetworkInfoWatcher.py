@@ -1,14 +1,22 @@
 import threading
-import time
+import time, sys
 from threading import Thread
 from typing import List
 
-from .objects import AddressInfo, RouteInfo, RoutingManager
+from .objects import AddressInfo, NetworkAdapter, RouteInfo, RoutingManager
 
 
 class NetworkInfoWatcher:
     """
     """
+    
+    def stdout(self, out:str):
+        sys.stdout.write(f"{out}\n")
+        sys.stdout.flush()
+    def stderr(self, out:str):
+        sys.stderr.write(f"{out}\n")
+        sys.stderr.flush()
+    
     adapter__rt: dict = {}
     watchers: List[Thread] = []
     
@@ -51,15 +59,19 @@ class NetworkInfoWatcher:
             # Run check on the routes    
             routeInfo = RouteInfo(name, table)
             if (routeInfo.hasValidRoutes() == False):
-                self.__shiftRouting(adapter=name,nic_rt_table=table)
+                try:
+                    self.__shiftRouting(name=name,nic_rt_table=table)
+                except:
+                    self.stderr("Failed to adjust routes..")
             
             try:
                 time.sleep(sleep_time)
             except:
                 return
             
-    def __shiftRouting(self, adapter, nic_rt_table) -> None:
+    def __shiftRouting(self, name, nic_rt_table) -> None:
         """"""
+        adapter = NetworkAdapter(name)
         route_manager = RoutingManager()
         route_manager.flushTable(tableName=nic_rt_table)
         route_manager.deleteRoute(adapter=adapter)
