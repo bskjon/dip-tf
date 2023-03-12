@@ -192,7 +192,7 @@ CHMOD_FILES=(
 )
 
 for FILE in "${CHMOD_FILES[@]}"; do
-    chmod 700 $FILE
+    chmod 755 $FILE
     chmod +x $FILE
 done
 
@@ -207,3 +207,4 @@ systemctl start dynamic-routing-updater.service
 systemctl status dynamic-routing-updater.service
 
 echo "Done!"
+journalctl -exfu dynamic-routing-updater

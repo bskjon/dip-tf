@@ -5,8 +5,9 @@ import signal
 from threading import Thread
 import threading
 from typing import List
-
-from ._DynamicIpWatcherAction import _DynamicIpWatcherAction
+from .objects import NetworkAdapter, RoutingManager
+from .NetworkHookHandler import NetworkHookHandler
+from .NetworkInfoWatcher import NetworkInfoWatcher
 import os, sys, time, re, errno
 import netifaces 
        
@@ -14,7 +15,8 @@ import netifaces
 class DynamicRoutingUpdater:
     """DynamicRoutingUpdater, modify routing table
     """
-    dipwa: _DynamicIpWatcherAction = None
+    dipwa: NetworkHookHandler = None
+    niw: NetworkInfoWatcher = None
     
     configuredTables = {}
     tableName = "direct"
@@ -85,6 +87,10 @@ class DynamicRoutingUpdater:
         for entry in updatedTables:
             rewrite.write("{}\n".format(entry))
         rewrite.close()
+        manager = RoutingManager()
+        for net, table in self.configuredTables.items():
+            manager.removeInOutRule(net, table)
+        
                
     def addDruTableEntries(self) -> None:
         """
@@ -111,20 +117,32 @@ class DynamicRoutingUpdater:
             for table in appendableTables:
                 file.write("{}\n".format(table))
                 sys.stdout.write(f"{table}\n")
+    
+    def setRoutingRules(self) -> None:
+        """
+        """
+        manager = RoutingManager()
+        for net, table in self.configuredTables.items():
+            manager.setIncomingRule(net, table)
+            manager.setOutgoingRule(net, table)
+                    
                 
     def start(self) -> None:
         """
         """
         sys.stdout.write("Updating and preparing Routing Table entries\n")
         self.addDruTableEntries()
+        self.setRoutingRules()
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
             sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
             return
         
         sys.stdout.write("Starting DIPWA\n")
-        self.dipwa = _DynamicIpWatcherAction(self.nics, self.configuredTables)
+        self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
         self.dipwa.start()
+        self.niw = NetworkInfoWatcher(self.configuredTables)
+        self.niw.start()
         
     def dryrun(self) -> None:
         """
@@ -133,13 +151,15 @@ class DynamicRoutingUpdater:
         sys.stdout.write("Starting DRU dryrun\n")
         sys.stdout.write("Updating and preparing Routing Table entries\n")
         self.addDruTableEntries()
+        self.setRoutingRules()
+    
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
             sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
             return
         
         sys.stdout.write("Starting DIPWA\n")
-        self.dipwa = _DynamicIpWatcherAction(self.nics, self.configuredTables)
+        self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
         self.dipwa.dryrun()
         sys.stdout.write("\nDRU dryrun ended\n")
         

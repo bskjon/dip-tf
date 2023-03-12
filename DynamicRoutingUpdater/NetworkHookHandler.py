@@ -4,12 +4,12 @@ import random
 from threading import Thread
 import threading
 from typing import List
-from .objects import NetworkAdapter
+from .objects import NetworkAdapter, RoutingManager
 import os, sys, time, re, errno
 import netifaces 
 
 
-class _DynamicIpWatcherAction:
+class NetworkHookHandler:
     """
     """
     __mainThread = threading.current_thread
@@ -108,93 +108,17 @@ class _DynamicIpWatcherAction:
         """
         nic_rt_table = self.nics_rt[adapter.name]
         self.stdout(f"Modifying routing for {adapter.name} on table {nic_rt_table}")
-        self.__routingTable_flushTable(tableName=nic_rt_table)
-        self.__routingTable_deleteRoute(adapter=adapter)
-        self.__routingTable_deleteRoute(adapter=adapter, tableName=nic_rt_table)
-        self.__routingTable_addRoute(adapter=adapter, tableName=nic_rt_table)
-        self.__routingTable_addRule(adapter=adapter, tableName=nic_rt_table)
         
+        route_manager = RoutingManager()
+        route_manager.flushTable(tableName=nic_rt_table)
+        route_manager.deleteRoute(adapter=adapter)
+        route_manager.deleteRoute(adapter=adapter, tableName=nic_rt_table)
         
-    def __routingTable_addRoute(self, adapter: NetworkAdapter, tableName: str) -> None:
-        """_summary_
-        """
-        self.stdout(f"Adding routes to routing table {tableName}")
-        if not tableName:
-            raise Exception("Routing table name is not preset")
-        operations: List[str] = [
-            "ip route add {}/{} dev {} src {} table {}".format(adapter.netmask, adapter.cidr, adapter.name, adapter.ip, tableName),
-            "ip route add default via {} dev {} src {} table {}".format(adapter.gateway, adapter.name, adapter.ip, tableName),
-            "ip route add {} dev {} src {} table {}".format(adapter.gateway, adapter.name, adapter.ip, tableName)
-        ]
-        for operation in operations:
-            #proc = subprocess.run([operation], shell=True, check=True, stdout=subprocess.PIPE)
-            result = os.system(operation)
-            if result != 0:
-                self.stderr(f"Failed: {operation}")
-            else:
-                self.stderr(f"OK: {operation}")
+
+        route_manager.addRoute(adapter=adapter, tableName=nic_rt_table)
+        #route_manager.addRule(adapter=adapter, tableName=nic_rt_table)
         
-    def __routingTable_addRule(self, adapter: NetworkAdapter, tableName: str) -> None:
-        """
-        """
-        self.stdout(f"Adding rules to routing table {tableName}")
-        if not tableName:
-            raise Exception("Routing table name is not preset")
-        operations: List[str] = [
-            "ip rule add from {} table {}".format(adapter.ip, tableName),
-        ]
-        for operation in operations:
-            #proc = subprocess.run([operation], shell=True, check=True, stdout=subprocess.PIPE)
-            result = os.system(operation)
-            if result != 0:
-                self.stderr(f"Failed: {operation}")
-            else:
-                self.stderr(f"OK: {operation}")
-    
-    def __routingTable_deleteRoute(self, adapter: NetworkAdapter, tableName: str = "main") -> None:
-        """Deletes routes on routing table
-            If there is a different ruting table than main, you will need to pass it here
-            For removing routes on the default table keep "main" or replace it with the correct one
-        """
-        self.stdout(f"Deleting rules on routing table {tableName}")
-        if not tableName:
-            raise Exception("Routing table name is not preset")
-        operations: List[str] = [
-            "ip route del {}/{} dev {} src {} table {}".format(adapter.netmask, adapter.cidr, adapter.name, adapter.ip, tableName),
-            "ip route del default via {} dev {} src {} table {}".format(adapter.gateway, adapter.name, adapter.ip, tableName),
-            "ip route del {} dev {} src {} table {}".format(adapter.gateway, adapter.name, adapter.ip, tableName)
-        ]
-        if tableName != "main":
-            operations.append("ip route flush table {}".format(tableName))
-        
-        for operation in operations:
-            #proc = subprocess.run([operation], shell=True, check=True, stdout=subprocess.PIPE)
-            result = os.system(operation)
-            if result != 0:
-                self.stderr(f"Failed: {operation}")
-            else:
-                self.stderr(f"OK: {operation}")
-                
-    def __routingTable_flushTable(self, tableName: str) -> None:
-        """Deletes routes on routing table
-            If there is a different ruting table than main, you will need to pass it here
-            For removing routes on the default table keep "main" or replace it with the correct one
-        """
-        self.stdout(f"Flushing routing table {tableName}")
-        if not tableName:
-            raise Exception("Routing table name is not preset")
-        operations: List[str] = [
-            "ip route flush table {}".format(tableName)
-        ]
-        
-        for operation in operations:
-            #proc = subprocess.run([operation], shell=True, check=True, stdout=subprocess.PIPE)
-            result = os.system(operation)
-            if result != 0:
-                self.stderr(f"Failed: {operation}")
-            else:
-                self.stderr(f"OK: {operation}")         
-    
+            
     nicsPullerThreads: List[Thread] = []
 
     def __puller_add(self, nic: str) -> None:
