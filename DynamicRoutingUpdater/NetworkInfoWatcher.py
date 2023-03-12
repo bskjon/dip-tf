@@ -60,7 +60,8 @@ class NetworkInfoWatcher:
             routeInfo = RouteInfo(name, table)
             if (routeInfo.hasValidRoutes() == False):
                 try:
-                    self.__shiftRouting(name=name,nic_rt_table=table)
+                    with open("/tmp/dipwa", 'w') as fifo:
+                        fifo.write('stop')
                 except:
                     self.stderr("Failed to adjust routes..")
             
@@ -69,11 +70,3 @@ class NetworkInfoWatcher:
             except:
                 return
             
-    def __shiftRouting(self, name, nic_rt_table) -> None:
-        """"""
-        adapter = NetworkAdapter(name)
-        route_manager = RoutingManager()
-        route_manager.flushTable(tableName=nic_rt_table)
-        route_manager.deleteRoute(adapter=adapter)
-        route_manager.deleteRoute(adapter=adapter, tableName=nic_rt_table)
-        route_manager.addRoute(adapter=adapter, tableName=nic_rt_table)
