@@ -140,6 +140,9 @@ class AddressInfo:
         self.__read()
         return self.valid_life_time_in_sec
     
+    def __str__(self):
+        return "\tIPv4 => {},\n\t Prefix => {},\n\t isDHCP => {},\n\t TTL => {}\n".format(self.ip_address, self.ip_address_prefix, self.is_dynamic, self.ttl_now())
+    
 class RouteEntry:
     dst: str = None
     gateway: str = None
@@ -153,6 +156,10 @@ class RouteEntry:
         self.dev = dev
         self.prefsrc = prefsrc
         self.scope = scope
+    
+    def __str__(self):
+        return "\tdst => {},\n\t gateway => {},\n\t dev => {},\n\t prefsrc => {},\n\t scope => {}\n".format(self.dst, self.gateway, self.dev, self.prefsrc, self.scope)
+
 
 class RouteInfo:
     """"""
@@ -167,6 +174,7 @@ class RouteInfo:
         self.__read()
     
     def __read(self):
+        self.routes.clear()
         dump = subprocess.getoutput(f"ip -j route show table {self.tableName}")
         jo = json.loads(dump)
         if len(jo) == 0:
@@ -184,7 +192,19 @@ class RouteInfo:
         
     def hasValidRoutes(self) -> bool:
         addri = AddressInfo(self.adapterName)
-        return len(self.routes) >= 2 and all(x.prefsrc == addri.ip_address for x in self.routes)
+        if len(self.routes) < 2:
+            sys.stderr.write("Routes are less than required")
+            for route in self.routes:
+                sys.stderr.write(route)
+            sys.stderr.flush()
+            return False
+        elif all(x.prefsrc == addri.ip_address for x in self.routes) == False:
+            sys.stderr.write("Some route IPs are wrong")
+
+            sys.stderr.flush()
+            return False
+        
+        return True
     
             
 #  [{"addr_info":[{"index":4,"dev":"internet","family":"inet","local":"193.69.230.53","prefixlen":21,"metric":100,"broadcast":"193.69.231.255","scope":"global","dynamic":true,"label":"internet","valid_life_time":436,"preferred_life_time":436}]}]
