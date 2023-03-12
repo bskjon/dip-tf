@@ -2,7 +2,7 @@ import netifaces
 from netaddr import IPAddress
 from typing import Optional
 import sys, os, re, errno, json
-from typing import List
+from typing import List, Dict
 import json
 import subprocess
 from datetime import datetime
@@ -176,16 +176,16 @@ class RouteInfo:
     def __read(self):
         self.routes.clear()
         dump = subprocess.getoutput(f"ip -j route show table {self.tableName}")
-        jo = json.loads(dump)
-        if len(jo) == 0:
+        data: List[Dict[str, any]] = json.loads(dump)
+        if len(data) == 0:
             return
-        for item in jo:
+        for item in data:
             route = RouteEntry(
-                dst=getattr(item, "dst", None),
-                gateway=getattr(item, "gateway", None),
-                dev=getattr(item, "dev", None),
-                prefsrc=getattr(item, "prefsrc", None),
-                scope=getattr(item, "scope", None)
+                dst=item.get("dst"),
+                gateway=item.get("gateway"),
+                dev=item.get("dev"),
+                prefsrc=item.get("prefsrc"),
+                scope=item.get("scope")
             )
             self.routes.append(route)
         
