@@ -193,7 +193,7 @@ class RouteInfo:
     def hasValidRoutes(self) -> bool:
         addri = AddressInfo(self.adapterName)
         if len(self.routes) < 2:
-            sys.stderr.write("Routes are less than required")
+            sys.stderr.write("Routes are less than required\n")
             for route in self.routes:
                 sys.stderr.write(route)
             sys.stderr.flush()
