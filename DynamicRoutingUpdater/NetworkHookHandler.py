@@ -148,7 +148,7 @@ class NetworkHookHandler:
         
 
         route_manager.addRoute(adapter=adapter, tableName=nic_rt_table)
-        #route_manager.addRule(adapter=adapter, tableName=nic_rt_table)
+        route_manager.addRule(adapter=adapter, tableName=nic_rt_table)
         
             
     nicsPullerThreads: List[Thread] = []

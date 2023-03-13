@@ -118,12 +118,14 @@ class DynamicRoutingUpdater:
                 file.write("{}\n".format(table))
                 sys.stdout.write(f"{table}\n")
     
-    def setRoutingRules(self) -> None:
+    def setRoutingRulesAndRoutes(self) -> None:
         """
         """
         sys.stdout.write("Defining Incoming and Outgoing rules for defined interfaces and routing tables\n")
         manager = RoutingManager()
         for net, table in self.configuredTables.items():
+            manager.setupRouteTable(net, table)           
+            
             manager.setIncomingRule(net, table)
             manager.setOutgoingRule(net, table)
                     
@@ -133,7 +135,7 @@ class DynamicRoutingUpdater:
         """
         sys.stdout.write("Updating and preparing Routing Table entries\n")
         self.addDruTableEntries()
-        self.setRoutingRules()
+        self.setRoutingRulesAndRoutes()
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
             sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
@@ -156,7 +158,7 @@ class DynamicRoutingUpdater:
         sys.stdout.write("Starting DRU dryrun\n")
         sys.stdout.write("Updating and preparing Routing Table entries\n")
         self.addDruTableEntries()
-        self.setRoutingRules()
+        self.setRoutingRulesAndRoutes()
     
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:

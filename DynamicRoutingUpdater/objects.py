@@ -233,6 +233,19 @@ class RoutingManager:
                 self.stderr(f"Failed: {operation}")
             else:
                 self.stderr(f"OK: {operation}")
+                
+    def setupRouteTable(self, adapterName: str, tableName: str) -> None:
+        self.stdout(f"Setting all {adapterName} => {tableName}")
+        operations: List[str] = [
+            "ip route add default dev {} table {}".format(adapterName, tableName)
+        ]
+        for operation in operations:
+            #proc = subprocess.run([operation], shell=True, check=True, stdout=subprocess.PIPE)
+            result = os.system(operation)
+            if result != 0:
+                self.stderr(f"Failed: {operation}")
+            else:
+                self.stderr(f"OK: {operation}")
         
     def setOutgoingRule(self, adapterName: str, tableName: str) -> None:
         self.stdout(f"Setting all Outgoing@{adapterName} => {tableName}")
