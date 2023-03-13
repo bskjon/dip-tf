@@ -15,7 +15,7 @@ setup(
         "netifaces>=0.11.0",
         "netaddr>=0.8.0"
     ],
-    version="0.0.2",
+    version="0.0.3",
     description="""
     A Python library to modify and alter the routing table in according to configuration passed
     """,
