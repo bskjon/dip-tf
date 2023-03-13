@@ -123,6 +123,8 @@ class NetworkHookHandler:
                 if message == targetName:
                     self.stdout(f"DRUHook Thread for {targetName} has received event")
                     self.__processMessage(message)
+                else:
+                    self.message_queue.put(message)
                 
                  
     
