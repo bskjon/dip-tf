@@ -4,6 +4,8 @@ import random
 import signal
 from threading import Thread
 import threading
+from .version import __version__
+
 from typing import List
 
 from .RoutingTable import RoutingTable
@@ -51,6 +53,7 @@ class DynamicRoutingUpdater:
         """
         """
         sys.stdout.write(f"{self.flipper()}\n")
+        sys.stdout.write(f"Version: {__version__}\n")
         sys.stdout.write("Loading up Dynamic Routing Updater\n")
         sys.stdout.write("Reading configuration\n")
         reference = json.load(open(reference))

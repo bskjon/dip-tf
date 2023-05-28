@@ -1,6 +1,7 @@
 import os
 
 from setuptools import setup
+from DynamicRoutingUpdater import version
 
 def readme():
     with open('README.md', encoding='utf-8') as f:
@@ -15,7 +16,7 @@ setup(
         "netifaces>=0.11.0",
         "netaddr>=0.8.0"
     ],
-    version="0.0.4-alpha1",
+    version=version.__version__,
     description="""
     A Python library to modify and alter the routing table in according to configuration passed
     """,
