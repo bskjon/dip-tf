@@ -14,6 +14,13 @@ from .NetworkInfoWatcher import NetworkInfoWatcher
 import os, sys, time, re, errno
 import netifaces
        
+def stdout(out:str):
+    sys.stdout.write(f"{out}\n")
+    sys.stdout.flush()
+    
+def stderr(out:str):
+    sys.stderr.write(f"{out}\n")
+    sys.stderr.flush() 
 
 class DynamicRoutingUpdater:
     """DynamicRoutingUpdater, modify routing table
@@ -65,15 +72,15 @@ class DynamicRoutingUpdater:
         """_summary_
         """
         availableNetworkAdapters = netifaces.interfaces()
-        sys.stdout.write("[INFO]: Running pre-check")
+        stdout("[INFO]: Running pre-check")
         if set(self.nics).issubset(set(availableNetworkAdapters)):
-            sys.stdout.write("[OK]: Configured interfaces are present!")
+            stdout("[OK]: Configured interfaces are present!")
         else:
-            sys.stderr.write("[ERROR]: Configured interfaces are not present!")
+            stderr("[ERROR]: Configured interfaces are not present!")
             missingNetworkAdapters = [verdi for verdi in self.nics if verdi not in availableNetworkAdapters]
             for missing in missingNetworkAdapters:
-                sys.stderr.write(f"\t{missing}")
-            sys.stdout.write("[SUGGESTION]: Verify that your configuration corresponds to your available network adapters")
+                stderr(f"\t{missing}")
+            stdout("[SUGGESTION]: Verify that your configuration corresponds to your available network adapters")
             exit(1)
         
         
@@ -83,7 +90,7 @@ class DynamicRoutingUpdater:
         
         for device, table in self.configuredTables.items():
             Routing.addRoute_Default(device=device, table=table)
-        sys.stdout.write("Setup completed")
+        stdout("Setup completed")
                 
     def start(self) -> None:
         """
