@@ -11,9 +11,9 @@ def stderr(out:str):
     sys.stderr.write(f"[ERROR]: {out}\n")
     sys.stderr.flush() 
     
-def operationOut(resultCode: int = -1, text: str = None) -> None:
+def operationOut(resultCode: int = -1, text: str = None, response: any = None) -> None:
     if (resultCode != 0):
-        stderr(f"[FAILED]: {text}")
+        stderr(f"[FAILED]: {text}\n\tResult: {response}")
     else:
         stdout(f"[SUCCESS]: {text}")
 
@@ -59,8 +59,10 @@ class Rules:
         if (source is None or table is None):
             raise ValueError(f"source is {source} and table is {table}, None is not supported!")
         command = f"ip rule add from {source} table {table}"
-        operationOut(resultCode=os.system(os.system(command)), text=command)
+        result = os.system(command)
+        operationOut(resultCode=os.system(result), text=command, response=result)
     def deleteRule(self, table: str) -> None:
         command = f"ip rule del table {table}"
-        operationOut(resultCode=os.system(os.system(command)), text=command)
+        result = os.system(command)
+        operationOut(resultCode=os.system(result), text=command, response=result)
     

@@ -6,9 +6,10 @@ def stdout(out:str):
 def stderr(out:str):
     sys.stderr.write(f"{out}\n")
     sys.stderr.flush() 
-def operationOut(resultCode: int = -1, text: str = None) -> None:
+
+def operationOut(resultCode: int = -1, text: str = None, response: any = None) -> None:
     if (resultCode != 0):
-        stderr(f"[FAILED]: {text}")
+        stderr(f"[FAILED]: {text}\n\tResult: {response}")
     else:
         stdout(f"[SUCCESS]: {text}")
 
