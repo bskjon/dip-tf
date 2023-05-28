@@ -22,7 +22,7 @@ setup(
     python_requires=">=3.9.0",
     author="Brage Skjønborg",
     author_email="bskjon@outlook.com",
-    url="https://github.com/bskjon/DynamicRoutingUpdater",
+    url="https://github.com/iktdev-no/DynamicRoutingUpdater",
     classifiers=[
         "Intended Audience :: Developers",
         "Operating System :: POSIX :: Linux",

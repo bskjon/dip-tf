@@ -5,7 +5,10 @@ import signal
 from threading import Thread
 import threading
 from typing import List
-from .objects import NetworkAdapter, RoutingManager
+
+from .RoutingTable import RoutingTable
+from .Routing import Routing
+
 from .NetworkHookHandler import NetworkHookHandler
 from .NetworkInfoWatcher import NetworkInfoWatcher
 import os, sys, time, re, errno
@@ -18,7 +21,7 @@ class DynamicRoutingUpdater:
     dipwa: NetworkHookHandler = None
     niw: NetworkInfoWatcher = None
     
-    configuredTables = {}
+    configuredTables: dict = {}
     tableName = "direct"
     
     nics: List[str] = []
@@ -58,6 +61,18 @@ class DynamicRoutingUpdater:
         
         signal.signal(signal.SIGINT, self.__stop)
     
+    def setup(self) -> None:
+        """_summary_
+        """
+        rt = RoutingTable(self.tableName, self.nics)
+        rt.deleteMyEntries()
+        self.configuredTables = rt.addMyEntries()
+        
+        for device, table in self.configuredTables.items():
+            Routing.addRoute_Default(device=device, table=table)
+        sys.stdout.write("Setup completed")
+        
+        
     def getRoutingTable(self) -> List[str]:
         """Read routing table to list
         """
@@ -71,79 +86,19 @@ class DynamicRoutingUpdater:
                     sys.stdout.write("Skipping empty line in rt_tables!\n")
         return rt_entries
     
-    def removeDruTableEntries(self) -> None:
-        """Removes DRU created routing table entries
-        """    
-        escapedTableName = re.escape(self.tableName)
-        directTable = re.compile(r"[0-9]+\t{}[0-9]+(?!\w)".format(escapedTableName), re.IGNORECASE)
-                
-        sys.stdout.write("Removing old tables..\n")
-        updatedTables: List[str] = []
-        for line in self.getRoutingTable():
-            if directTable.search(line) == None:
-                updatedTables.append(line)
-        
-        rewrite = open("/etc/iproute2/rt_tables", "w")
-        for entry in updatedTables:
-            rewrite.write("{}\n".format(entry))
-        rewrite.close()
-        manager = RoutingManager()
-        for net, table in self.configuredTables.items():
-            manager.removeInOutRule(net, table)
-        
-               
-    def addDruTableEntries(self) -> None:
-        """
-        """
-        self.removeDruTableEntries()
-        acceptableTableIds = list(range(0, 255))
-        activeTablesCheck = re.compile(r"^(?!#)[0-9]+")
-        for line in self.getRoutingTable():
-            activeIds = activeTablesCheck.findall(line)
-            if len(activeIds) > 0:
-                activeId = int(activeIds[0])
-                if (activeId in acceptableTableIds):
-                    acceptableTableIds.remove(activeId)
-        
-        appendableTables: List[str] = []
-        for i, adapter in enumerate(self.nics):
-            tableId = acceptableTableIds.pop(0)
-            ntableName: str = "{}{}".format(self.tableName, i)
-            tableEntry: str = "{}\t{}".format(tableId, ntableName)
-            appendableTables.append(tableEntry)
-            self.configuredTables[adapter] = ntableName
-        sys.stdout.write("Creating new tables\n")
-        with open("/etc/iproute2/rt_tables", "a") as file:
-            for table in appendableTables:
-                file.write("{}\n".format(table))
-                sys.stdout.write(f"{table}\n")
-    
-    def setRoutingRulesAndRoutes(self) -> None:
-        """
-        """
-        sys.stdout.write("Defining Incoming and Outgoing rules for defined interfaces and routing tables\n")
-        manager = RoutingManager()
-        for net, table in self.configuredTables.items():
-            manager.setupRouteTable(net, table)           
-            
-            manager.setIncomingRule(net, table)
-            manager.setOutgoingRule(net, table)
-                    
                 
     def start(self) -> None:
         """
         """
         sys.stdout.write("Updating and preparing Routing Table entries\n")
-        self.addDruTableEntries()
-        self.setRoutingRulesAndRoutes()
+        self.setup()
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
             sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
             return
         
-        route_manager = RoutingManager()
-        for nic_name, nic_table in self.configuredTables.items():
-            route_manager.flushTable(tableName=nic_table)
+        for nic_table in self.configuredTables.items():
+            Routing.flushRoutes(nic_table)
         
         sys.stdout.write("Starting DRUHook\n")
         self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
@@ -157,8 +112,7 @@ class DynamicRoutingUpdater:
         
         sys.stdout.write("Starting DRU dryrun\n")
         sys.stdout.write("Updating and preparing Routing Table entries\n")
-        self.addDruTableEntries()
-        self.setRoutingRulesAndRoutes()
+        self.setup()
     
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
@@ -176,5 +130,5 @@ class DynamicRoutingUpdater:
         
     def stop(self) -> None:
         self.dipwa.stop()
-        self.removeDruTableEntries()
+        RoutingTable(self.tableName, self.nics).deleteMyEntries()
         sys.stdout.write("Stopped DRUHook and removed created Routing Table entries\n")
