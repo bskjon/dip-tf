@@ -12,7 +12,7 @@ from .Routing import Routing
 from .NetworkHookHandler import NetworkHookHandler
 from .NetworkInfoWatcher import NetworkInfoWatcher
 import os, sys, time, re, errno
-import netifaces 
+import netifaces
        
 
 class DynamicRoutingUpdater:
@@ -64,6 +64,19 @@ class DynamicRoutingUpdater:
     def setup(self) -> None:
         """_summary_
         """
+        availableNetworkAdapters = netifaces.interfaces()
+        sys.stdout.write("[INFO]: Running pre-check")
+        if set(self.nics).issubset(set(availableNetworkAdapters)):
+            sys.stdout.write("[OK]: Configured interfaces are present!")
+        else:
+            sys.stderr.write("[ERROR]: Configured interfaces are not present!")
+            missingNetworkAdapters = [verdi for verdi in self.nics if verdi not in availableNetworkAdapters]
+            for missing in missingNetworkAdapters:
+                sys.stderr.write(f"\t{missing}")
+            sys.stdout.write("[SUGGESTION]: Verify that your configuration corresponds to your available network adapters")
+            exit(1)
+        
+        
         rt = RoutingTable(self.tableName, self.nics)
         rt.deleteMyEntries()
         self.configuredTables = rt.addMyEntries()
