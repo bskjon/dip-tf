@@ -4,9 +4,12 @@ from threading import Thread
 import threading
 import queue
 from typing import List
-from .objects import NetworkAdapter, RoutingManager
 import os, sys, time, re, errno
 import netifaces 
+from .objects import IpData
+from .Routing import Routing
+from .Rules import Rules
+from .NetworkAdapter import NetworkAdapter
 
 
 class NetworkHookHandler:
@@ -130,7 +133,7 @@ class NetworkHookHandler:
     
     def __processMessage(self, nic: str) -> None:
         adapter = NetworkAdapter(nic)
-        if (adapter.isValid()):
+        if (adapter.getIpData().isValid()):
             self.__routingTable_modify(adapter)
         else:
             self.stdout(f"Adding puller on {nic}")
@@ -143,14 +146,16 @@ class NetworkHookHandler:
         nic_rt_table = self.nics_rt[adapter.name]
         self.stdout(f"Modifying routing for {adapter.name} on table {nic_rt_table}")
         
-        route_manager = RoutingManager()
-        route_manager.flushTable(tableName=nic_rt_table)
-        #route_manager.deleteRoute(adapter=adapter)
-        #route_manager.deleteRoute(adapter=adapter, tableName=nic_rt_table)
+        Routing.flushRoutes(table=nic_rt_table) 
+        ipData = adapter.getIpData()
+        Routing("main").deleteRoutes(ipData=ipData)
         
-
-        route_manager.addRoute(adapter=adapter, tableName=nic_rt_table)
-        route_manager.addRule(adapter=adapter, tableName=nic_rt_table)
+        rt = Routing(nic_rt_table)
+        rt.deleteRoutes(ipData=ipData)
+        rt.addRoutes(ipData=ipData)
+        
+        Rules().deleteRule(table=nic_rt_table)
+        Rules().addRule(table=nic_rt_table, source=ipData.ip)
         
             
     nicsPullerThreads: List[Thread] = []
@@ -185,7 +190,7 @@ class NetworkHookHandler:
         isInInvalidState: bool = True
         while isInInvalidState:
             time.sleep(waitTime)
-            adapter = NetworkAdapter(nic)
+            adapter = NetworkAdapter(nic).getIpData()
             isInInvalidState = not adapter.isValid()
             print(adapter)
             if (isInInvalidState == False):

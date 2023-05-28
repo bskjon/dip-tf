@@ -2,9 +2,9 @@ import threading
 import time, sys
 from threading import Thread
 from typing import List
-
-from .objects import AddressInfo, NetworkAdapter, RouteInfo, RoutingManager
-
+from .AddressInfo import AddressInfo
+from .Routing import Routing
+from .Rules import Rules
 
 class NetworkInfoWatcher:
     """
@@ -44,11 +44,12 @@ class NetworkInfoWatcher:
         """"""
         ai = AddressInfo(name)
         while not self.stopFlag.is_set():
-            sleep_time = 0
-            if ai.valid_life_time_in_sec == None:
+            sleep_time = 1
+            ipInfo = ai.read()
+            if ipInfo.valid_life_time_in_sec == None:
                 sleep_time = 60
             else:
-                sleep_time = ai.valid_life_time_in_sec
+                sleep_time = ipInfo.valid_life_time_in_sec
             
             try:
                 # Waits 30 sec just to prevent conflict if both hook and this runs at the same time
@@ -57,16 +58,38 @@ class NetworkInfoWatcher:
                 return
             
             # Run check on the routes    
-            routeInfo = RouteInfo(name, table)
-            if (routeInfo.hasValidRoutes() == False):
+            if (self.__routeValidation(table=table, device=name) == False):
                 try:
                     with open("/tmp/dru-hook", 'w') as fifo:
                         fifo.write(name)
                 except:
                     self.stderr("Failed to adjust routes..")
             
+            if (self.__ruleValidation(device=name, table=table) == False):
+                Rules().addRule(ipInfo.ip_address, table=table)
+            
             try:
                 time.sleep(sleep_time)
             except:
                 return
-            
+    
+    def __routeValidation(self, device: str, table: str) -> bool:
+        """"""
+        addri = AddressInfo(device).read()
+        routes = Routing.getRoutes(table=table)
+        if (len(routes) < 2):
+            return False
+        if all(x.preferredSource == addri.ip_address for x in routes) == False:
+            return False
+        return True
+    
+    def __ruleValidation(self, device: str, table: str) -> bool:
+        """"""
+        rules = Rules.getRules(table=table)
+        addri = AddressInfo(device).read()
+        if (len(rules) < 2):
+            return False
+        if any(x.source == addri.ip_address for x in rules) == False:
+            return False
+        return True
+        
