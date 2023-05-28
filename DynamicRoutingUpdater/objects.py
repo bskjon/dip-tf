@@ -13,7 +13,7 @@ class Rule:
     def __str__(self) -> str:
         return "\tpriority => \t{},\n\tsource => \t{},\n\ttable => \t{}\n".format(self.priority, self.source, self.table)
     
-class Route:
+class Route(object):
     """_summary_
     """
     destination: str = None
@@ -28,6 +28,8 @@ class Route:
         self.device = device
         self.preferredSource = preferredSource
         self.scope = scope
+    def __str__(self) -> str:
+        return f"\n\tdestination =>\t\t{self.destination}\n\tgateway =>\t\t{self.gateway}\n\tdevice =>\t\t{self.device}\n\tpreferredSource =>\t{self.preferredSource}\n\tscope =>\t\t{self.scope}"
     
 class IpData:
     name: str = None # Network Adapter name

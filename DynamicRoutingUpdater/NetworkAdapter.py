@@ -11,13 +11,18 @@ class NetworkAdapter:
         self.name = name
     
     def getIpData(self) -> IpData:
+        gateway = self.getGateway()
+        ipAddress = self.getIpAddress()
+        subnet = self.getSubnet()
+        cidr = self.getCidr(subnet)
+        netmask = self.getNetmask()
         return IpData(
-            self.name,
-            self.getGateway(),
-            self.getIpAddress(),
-            self.getSubnet(),
-            self.getCidr(self.subnet),
-            self.getNetmask()
+            name=self.name,
+            gateway=gateway,
+            ip=ipAddress,
+            subnet=subnet,
+            cidr=cidr,
+            netmask=netmask
         )
         
 

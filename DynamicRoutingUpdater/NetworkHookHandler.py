@@ -133,7 +133,7 @@ class NetworkHookHandler:
     
     def __processMessage(self, nic: str) -> None:
         adapter = NetworkAdapter(nic)
-        if (adapter.isValid()):
+        if (adapter.getIpData().isValid()):
             self.__routingTable_modify(adapter)
         else:
             self.stdout(f"Adding puller on {nic}")

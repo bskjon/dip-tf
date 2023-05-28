@@ -14,6 +14,8 @@ def operationOut(resultCode: int = -1, text: str = None) -> None:
 
 class RoutingTable:
     """"""
+    rt_table_file = "/etc/iproute2/rt_tables"
+    
     tableBaseName: str = None
     adapterNames: list[str] = []
     
@@ -33,7 +35,7 @@ class RoutingTable:
         """
         rt_entries: list[str] = []
         
-        with open("/etc/iproute2/rt_tables", "r") as rt_tables:
+        with open(RoutingTable.rt_table_file, "r") as rt_tables:
             for line in rt_tables:
                 if len(line.strip("\t\r\n")) > 0:
                     rt_entries.append(line.strip("\n"))
@@ -53,7 +55,7 @@ class RoutingTable:
             if directTable.search(line) == None:
                 updatedTables.append(line)
         
-        rewrite = open("/etc/iproute2/rt_tables", "w")
+        rewrite = open(self.rt_table_file, "w")
         for entry in updatedTables:
             rewrite.write("{}\n".format(entry))
         rewrite.close()
@@ -80,7 +82,7 @@ class RoutingTable:
             appendableTables.append(tableEntry)
             configuredTables[adapter] = ntableName
         sys.stdout.write("Creating new tables\n")
-        with open("/etc/iproute2/rt_tables", "a") as file:
+        with open(self.rt_table_file, "a") as file:
             for table in appendableTables:
                 file.write("{}\n".format(table))
                 sys.stdout.write(f"{table}\n")

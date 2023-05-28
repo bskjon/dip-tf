@@ -71,21 +71,6 @@ class DynamicRoutingUpdater:
         for device, table in self.configuredTables.items():
             Routing.addRoute_Default(device=device, table=table)
         sys.stdout.write("Setup completed")
-        
-        
-    def getRoutingTable(self) -> List[str]:
-        """Read routing table to list
-        """
-        rt_entries: List[str] = []
-        
-        with open("/etc/iproute2/rt_tables", "r") as rt_tables:
-            for line in rt_tables:
-                if len(line.strip("\t\r\n")) > 0:
-                    rt_entries.append(line.strip("\n"))
-                else:
-                    sys.stdout.write("Skipping empty line in rt_tables!\n")
-        return rt_entries
-    
                 
     def start(self) -> None:
         """
@@ -104,7 +89,16 @@ class DynamicRoutingUpdater:
         self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
         self.dipwa.start()
         self.niw = NetworkInfoWatcher(self.configuredTables)
+        try:
+            for nic in self.nics:
+                with open("/tmp/dru-hook", 'w') as fifo:
+                    fifo.write(nic)
+                time.sleep(10)
+        except:
+            sys.stderr("[ERROR]: Failed to adjust routes..")
+        
         self.niw.start()
+        
         
     def dryrun(self) -> None:
         """
