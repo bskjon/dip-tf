@@ -120,7 +120,7 @@ class DynamicRoutingUpdater:
         except:
             sys.stderr("[ERROR]: Failed to adjust routes..")
         
-        self.niw.start()
+#        self.niw.start()
         
         
     def dryrun(self) -> None:

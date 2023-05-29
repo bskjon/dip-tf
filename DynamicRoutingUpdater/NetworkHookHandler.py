@@ -139,7 +139,7 @@ class NetworkHookHandler:
         while not self.stopFlag.is_set():
             with self.message_mutex:
                 if self.message_queue.empty():
-                    timeout = random.uniform(1, 2)
+                    timeout = random.uniform(1, 5)
                     self.message_cond.wait(timeout)
                     continue                   
                     
