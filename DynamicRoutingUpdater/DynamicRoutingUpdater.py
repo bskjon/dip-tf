@@ -9,6 +9,7 @@ from typing import List
 
 from .RoutingTable import RoutingTable
 from .Routing import Routing
+from .Rules import Rules
 
 from .NetworkHookHandler import NetworkHookHandler
 from .NetworkInfoWatcher import NetworkInfoWatcher
@@ -147,4 +148,7 @@ class DynamicRoutingUpdater:
     def stop(self) -> None:
         self.dipwa.stop()
         RoutingTable(self.tableName, self.nics).deleteMyEntries()
+        for device, table in self.configuredTables.items():
+            Routing.flushRoutes(table=table)
+            Rules.flushRules(device=device, table=table)
         sys.stdout.write("Stopped DRUHook and removed created Routing Table entries\n")

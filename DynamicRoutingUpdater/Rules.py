@@ -56,11 +56,22 @@ class Rules:
             pass
         return result
     
+    @staticmethod
+    def flushRules(table: str = None, device: str = None) -> None:
+        commands = [
+            f"ip rule del table {table} oif {device}",
+            f"ip rule del table {table} iif {device}",
+            f"ip rule del table {table}"
+        ]
+        for command in commands:
+            operationOut(command)
+    
     def addRule(self, source: str = None, table: str = None) -> None:
         if (source is None or table is None):
             raise ValueError(f"source is {source} and table is {table}, None is not supported!")
         command = f"ip rule add from {source} table {table}"
         operationOut(command)
+        
     def deleteRule(self, table: str) -> None:
         command = f"ip rule del table {table}"
         operationOut(command)

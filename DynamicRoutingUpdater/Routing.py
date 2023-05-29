@@ -15,6 +15,8 @@ def operationOut(command: str = None) -> None:
     result = os.system(command)
     if result != 0:
         stderr(f"[FAILED]: {command}\n\tResult: {result}")
+    elif result == 512:
+        stdout(f"[PARTIAL]: {command}\n\tProvided the result: {result}")
     else:
         stdout(f"[SUCCESS]: {command}")
 
