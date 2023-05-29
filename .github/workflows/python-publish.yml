@@ -46,7 +46,8 @@ jobs:
 
     - name: Extract version from tag
       id: extract_version
-      run: echo "::set-env name=PROJECT_VERSION::${GITHUB_REF#refs/tags/}"
+      run: echo "PROJECT_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
       
     - name: Update version.py
       run: python version_update.py
