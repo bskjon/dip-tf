@@ -105,8 +105,8 @@ class DynamicRoutingUpdater:
             sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
             return
         
-        for nic_table in self.configuredTables.items():
-            Routing.flushRoutes(nic_table)
+        for device, table in self.configuredTables.items():
+            Routing.flushRoutes(table)
         
         sys.stdout.write("Starting DRUHook\n")
         self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
