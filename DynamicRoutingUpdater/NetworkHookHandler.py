@@ -58,20 +58,20 @@ class NetworkHookHandler:
 
 
     def __openPipe(self) -> None:
-        """_summary_
-        """
+        """_summary_"""
         self.stdout(f"Opening pipe on {self.pipe_path}")
         with open(self.pipe_path, 'r+') as fifo:
             while not self.stopFlag.is_set():
-                lines = fifo.readlines()
+                content = fifo.read()
+                lines = content.splitlines()
                 if lines:
                     with self.message_mutex:
                         for line in lines:
                             message = line.strip()
-                            if (message and message in self.nics):
+                            if message and message in self.nics:
                                 self.stdout(f"[INFO]: DRUHook Received message from hook: {message}")
                                 self.message_queue.put(message)
-                            elif (message == "stop"):
+                            elif message == "stop":
                                 self.stdout(f"[INFO]: DRUHook Received fifo stop: {message}")
                                 self.stopFlag.set()
                             else:
@@ -79,10 +79,12 @@ class NetworkHookHandler:
                                     self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
                         self.message_cond.notify_all()
                     self.stdout("[INFO]: Truncating message cache")
-                    fifo.truncate(0)
+                    fifo.seek(0)
+                    fifo.truncate()
                 else:
                     time.sleep(1)
         self.stdout(f"Pipe is closed!")
+
 
             
                 
