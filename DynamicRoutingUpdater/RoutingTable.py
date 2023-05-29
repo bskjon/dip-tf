@@ -1,4 +1,6 @@
 import sys, os, re
+from typing import List
+
 
 def stdout(out:str):
     sys.stdout.write(f"{out}\n")
@@ -19,9 +21,9 @@ class RoutingTable:
     rt_table_file = "/etc/iproute2/rt_tables"
     
     tableBaseName: str = None
-    adapterNames: list[str] = []
+    adapterNames: List[str] = []
     
-    def __init__(self, tableBaseName: str = None, adapterNames: list[str] = []) -> None:
+    def __init__(self, tableBaseName: str = None, adapterNames: List[str] = []) -> None:
         if (tableBaseName is None):
             raise ValueError(f"tableBaseName is {tableBaseName}, None is not supported!")
         self.tableBaseName = tableBaseName
@@ -35,7 +37,7 @@ class RoutingTable:
     def getRoutingTables() -> list[str]:
         """Read routing table to list
         """
-        rt_entries: list[str] = []
+        rt_entries: List[str] = []
         
         with open(RoutingTable.rt_table_file, "r") as rt_tables:
             for line in rt_tables:
@@ -52,7 +54,7 @@ class RoutingTable:
         directTable = re.compile(r"[0-9]+\t{}[0-9]+(?!\w)".format(escapedTableName), re.IGNORECASE)
                 
         sys.stdout.write("Removing old tables..\n")
-        updatedTables: list[str] = []
+        updatedTables: List[str] = []
         for line in RoutingTable.getRoutingTables():
             if directTable.search(line) == None:
                 updatedTables.append(line)
@@ -76,7 +78,7 @@ class RoutingTable:
                 if (activeId in acceptableTableIds):
                     acceptableTableIds.remove(activeId)
         
-        appendableTables: list[str] = []
+        appendableTables: List[str] = []
         for i, adapter in enumerate(self.adapterNames):
             tableId = acceptableTableIds.pop(0)
             ntableName: str = "{}{}".format(self.tableBaseName, i)

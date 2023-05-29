@@ -2,6 +2,9 @@ import subprocess
 import json
 import sys, os
 from .objects import Rule
+from typing import List
+
+
 
 def stdout(out:str):
     sys.stdout.write(f"{out}\n")
@@ -29,7 +32,7 @@ class Rules:
         """
         
     @staticmethod
-    def getRules(table: str = None) -> list[Rule]:
+    def getRules(table: str = None) -> List[Rule]:
         """_summary_
 
         Args:
@@ -38,10 +41,10 @@ class Rules:
         Returns:
             list[Rule]: _description_
         """
-        result: list[Rule] = []
+        result: List[Rule] = []
         try:
             query = f"ip -j rule show table {table}" if table is not None and len(table) > 0 else "ip -j rule show"
-            data: list[dict[str, any]] = json.loads(subprocess.getoutput(query))        
+            data: List[dict[str, any]] = json.loads(subprocess.getoutput(query))        
             if len(data) == 0:
                 return result
             for item in data:

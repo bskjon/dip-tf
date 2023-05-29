@@ -1,3 +1,4 @@
+from typing import List
 import subprocess
 import json
 import sys, os
@@ -35,17 +36,17 @@ class Routing:
         self.table = table
         
     @staticmethod
-    def getRoutes(table: str = None) -> list[Route]:
+    def getRoutes(table: str = None) -> List[Route]:
         """_summary_
 
         Returns:
             list[Route]: _description_
         """
-        result: list[Route] = []
+        result: List[Route] = []
         
         try:
             query = f"ip -j route show table {table}" if table is not None and len(table) > 0 else "ip -j route show"
-            data: list[dict[str, any]] = json.loads(subprocess.getoutput(query))
+            data: List[dict[str, any]] = json.loads(subprocess.getoutput(query))
             
             for item in data:
                 route = Route(
@@ -75,7 +76,7 @@ class Routing:
     def addRoutes(self, ipData: IpData) -> None:
         """_summary_
         """       
-        commands: list[str] = [
+        commands: List[str] = [
             "ip route add {}/{} dev {} src {} table {}".format(ipData.netmask, ipData.cidr, ipData.name, ipData.ip, self.table),
             "ip route add default via {} dev {} src {} table {}".format(ipData.gateway, ipData.name, ipData.ip, self.table),
             "ip route add {} dev {} src {} table {}".format(ipData.gateway, ipData.name, ipData.ip, self.table)
@@ -84,7 +85,7 @@ class Routing:
             operationOut(command)
     
     def deleteRoutes(self, ipData: IpData) -> None:
-        commands: list[str] = [
+        commands: List[str] = [
             "ip route del {}/{} dev {} src {} table {}".format(ipData.netmask, ipData.cidr, ipData.name, ipData.ip, self.table),
             "ip route del default via {} dev {} src {} table {}".format(ipData.gateway, ipData.name, ipData.ip, self.table),
             "ip route del {} dev {} src {} table {}".format(ipData.gateway, ipData.name, ipData.ip, self.table)
