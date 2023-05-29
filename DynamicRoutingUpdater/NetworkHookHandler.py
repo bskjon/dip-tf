@@ -147,15 +147,16 @@ class NetworkHookHandler:
         self.stdout(f"Modifying routing for {adapter.name} on table {nic_rt_table}")
         
         Routing.flushRoutes(table=nic_rt_table) 
+        Rules().flushRules(table=nic_rt_table)
+        
         ipData = adapter.getIpData()
         Routing("main").deleteRoutes(ipData=ipData)
         
-        Routing.flushRoutes(nic_rt_table)
+        
         rt = Routing(nic_rt_table)
         rt.deleteRoutes(ipData=ipData)
         rt.addRoutes(ipData=ipData)
         
-        Rules().deleteRule(table=nic_rt_table)
         Rules().addRule(table=nic_rt_table, source=ipData.ip)
         
             
