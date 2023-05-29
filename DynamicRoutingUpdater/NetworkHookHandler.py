@@ -1,12 +1,10 @@
-from io import TextIOWrapper
-import json, random
+import random
 from threading import Thread
 import threading
 import traceback
 import queue
 from typing import List
-import os, sys, time, re, errno
-import netifaces 
+import os, sys, time, errno
 from .objects import IpData
 from .Routing import Routing
 from .Rules import Rules
