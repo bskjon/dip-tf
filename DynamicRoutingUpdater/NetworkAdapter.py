@@ -3,6 +3,7 @@ from netaddr import IPAddress
 from typing import Optional
 from datetime import datetime
 from .objects import IpData
+import sys
 
 def stdout(out:str):
     sys.stdout.write(f"{out}\n")

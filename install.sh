@@ -158,10 +158,10 @@ STATUS = $2
 
 echo "DynamicIpWatcherAction: Registered change to network adpater $IFACE"
 
-if [ ! -z $IFACE ]
-then
-    echo $IFACE > /tmp/dru-hook
-fi' | tee /etc/networkd-dispatcher/routable.d/dru-hook.sh > /usr/lib/networkd-dispatcher/routable.d/dru-hook.sh > /etc/NetworkManager/dispacher.d/dru-hook.sh 
+if [ ! -z $IFACE ]; then
+    echo -e "$IFACE\n" >> /tmp/dru-hook
+fi
+' | tee /etc/networkd-dispatcher/routable.d/dru-hook.sh > /usr/lib/networkd-dispatcher/routable.d/dru-hook.sh > /etc/NetworkManager/dispacher.d/dru-hook.sh 
 
 
 
