@@ -142,6 +142,7 @@ class NetworkHookHandler:
                 if self.message_queue.empty():
                     timeout = random.uniform(1, 5)
                     self.message_cond.wait(timeout)
+                    self.stdout("Hello from DRU thread")
                     continue                   
                     
                 message = self.message_queue.get()
@@ -151,7 +152,6 @@ class NetworkHookHandler:
                 else:
                     self.message_queue.put(message)
             self.stdout("Hello from DRU thread")
-            time.sleep(1)
                 
                  
     
