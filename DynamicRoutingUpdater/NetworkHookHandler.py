@@ -136,13 +136,12 @@ class NetworkHookHandler:
             self.stderr("DRUHook has not been started in a separete thread!")
             raise Exception("DRUHook is started in main thread!")
         self.stdout(f"DRUHook Thread Started for {targetName}")
-        return
+        
         while not self.stopFlag.is_set():
             with self.message_mutex:
                 if self.message_queue.empty():
                     timeout = random.uniform(1, 5)
                     self.message_cond.wait(timeout)
-                    self.stdout("Hello from DRU thread")
                     continue                   
                     
                 message = self.message_queue.get()
@@ -151,8 +150,6 @@ class NetworkHookHandler:
                     self.__processMessage(message)
                 else:
                     self.message_queue.put(message)
-            self.stdout("Hello from DRU thread")
-                
                  
     
     def __processMessage(self, nic: str) -> None:
