@@ -3,7 +3,6 @@ import json
 import random
 import signal
 from threading import Thread
-import threading
 from .version import __version__
 
 from typing import List
@@ -88,7 +87,7 @@ class DynamicRoutingUpdater:
         
         
         rt = RoutingTable(self.tableName, self.nics)
-        rt.deleteMyEntries()
+#        rt.deleteMyEntries()
         self.configuredTables = rt.addMyEntries()
         
         for device, table in self.configuredTables.items():

@@ -11,11 +11,13 @@ def stderr(out:str):
     sys.stderr.write(f"{out}\n")
     sys.stderr.flush() 
     
-def operationOut(resultCode: int = -1, text: str = None, response: any = None) -> None:
-    if (resultCode != 0):
-        stderr(f"[FAILED]: {text}\n\tResult: {response}")
+def operationOut(command: str = None) -> None:
+    result = os.system(command)
+    if result != 0:
+        stderr(f"[FAILED]: {command}\n\tResult: {result}")
     else:
-        stdout(f"[SUCCESS]: {text}")
+        stdout(f"[SUCCESS]: {command}")
+
         
 
 class Routing:
@@ -59,14 +61,12 @@ class Routing:
     @staticmethod
     def flushRoutes(table: str = None) -> None:
         command = f"ip route flush table {table}"
-        result = os.system(command)
-        operationOut(resultCode=os.system(result), text=command, response=result)
+        operationOut(command)
     
     @staticmethod
     def addRoute_Default(device: str, table: str = None) -> None:
         command = f"ip route add default dev {device} table {table}"
-        result = os.system(command)
-        operationOut(resultCode=os.system(result), text=command, response=result)
+        operationOut(command)
         
     
     def addRoutes(self, ipData: IpData) -> None:
@@ -78,8 +78,7 @@ class Routing:
             "ip route add {} dev {} src {} table {}".format(ipData.gateway, ipData.name, ipData.ip, self.table)
         ]
         for command in commands:
-            result = os.system(command)
-            operationOut(resultCode=os.system(result), text=command, response=result)
+            operationOut(command)
     
     def deleteRoutes(self, ipData: IpData) -> None:
         commands: list[str] = [
@@ -90,5 +89,4 @@ class Routing:
         if self.table != "main" and self.table != "default":
             commands.append("ip route flush table {}".format(self.table))
         for command in commands:
-            result = os.system(command)
-            operationOut(resultCode=os.system(result), text=command, response=result)
+            operationOut(command)
