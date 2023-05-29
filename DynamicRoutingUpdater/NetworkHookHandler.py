@@ -3,7 +3,7 @@ import json, random
 from threading import Thread
 import threading
 import traceback
-import queue
+import queue, select
 from typing import List
 import os, sys, time, re, errno
 import netifaces 
@@ -59,21 +59,41 @@ class NetworkHookHandler:
         """_summary_
         """
         self.stdout(f"Opening pipe on {self.pipe_path}")
-        with open(self.pipe_path, 'r') as fifo:
+        
+        epoll = select.epoll()
+        pipe_fd = os.open(self.pipe_path, os.O_RDONLY | os.O_NONBLOCK)
+        epoll.register(pipe_fd, select.EPOLLIN)
+        
+        try:
             while not self.stopFlag.is_set():
-                message = fifo.readline().strip("\n")
-                if (message and message in self.nics):
-                    self.stdout(f"DRUHook Received message from hook: {message}")
-                    with self.message_mutex:
-                        self.message_queue.put(message)
-                        self.message_cond.notify_all()
-                        
-                elif message == "stop":
-                    self.stdout(f"DRUHook Received fifo stop: {message}")
-                else:
-                    if len(message) > 0:
-                        self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
-            #time.sleep(2.5)
+                events = epoll.poll()
+                for fileno, event in events:
+                    if fileno == pipe_fd and event & select.EPOLLIN:
+                        try:
+                            message = os.read(pipe_fd, 1024).strip().decode()
+                            if message in self.nics:
+                                self.stdout(f"DRUHook Received message from hook: {message}")
+                                with self.message_mutex:
+                                    self.message_queue.put(message)
+                                    self.message_cond.notify_all()
+                            elif message == "stop":
+                                self.stdout(f"DRUHook Received stop: {message}")
+                            else:
+                                if len(message) > 0:
+                                    self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
+                            pass
+                        except OSError as e:
+                            if e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK:
+                                # Ingen data tilgjengelig på røret for øyeblikket
+                                pass
+                            else:
+                                # Annet OSError
+                                self.stderr(f"Error reading from pipe: {e}")
+                                self.stopFlag.set()
+            pass
+        finally:
+            epoll.unregister(self.pipe_fd)
+            epoll.close()
         self.stdout(f"Pipe is closed!")
         
             
@@ -115,14 +135,14 @@ class NetworkHookHandler:
             self.stderr("DRUHook has not been started in a separete thread!")
             raise Exception("DRUHook is started in main thread!")
         self.stdout(f"DRUHook Thread Started for {targetName}")
+        
         while not self.stopFlag.is_set():
-            
             with self.message_mutex:
-                timeout = random.uniform(1, 2)
-                self.message_cond.wait(timeout)
-                
-                while self.message_queue.empty():
-                    self.message_cond.wait()
+                if self.message_queue.empty():
+                    timeout = random.uniform(1, 2)
+                    self.message_cond.wait(timeout)
+                    continue                   
+                    
                 message = self.message_queue.get()
                 if message == targetName:
                     self.stdout(f"DRUHook Thread for {targetName} has received event")
