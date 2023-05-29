@@ -150,6 +150,7 @@ class NetworkHookHandler:
                     self.__processMessage(message)
                 else:
                     self.message_queue.put(message)
+            time.sleep(1)
                 
                  
     
