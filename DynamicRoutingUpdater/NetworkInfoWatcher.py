@@ -87,7 +87,7 @@ class NetworkInfoWatcher:
         """"""
         rules = Rules.getRules(table=table)
         addri = AddressInfo(device).read()
-        if (len(rules) < 2):
+        if (len(rules) == 0):
             return False
         if any(x.source == addri.ip_address for x in rules) == False:
             return False
