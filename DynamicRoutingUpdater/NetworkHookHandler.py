@@ -78,6 +78,7 @@ class NetworkHookHandler:
                                     self.message_cond.notify_all()
                             elif message == "stop":
                                 self.stdout(f"DRUHook Received stop: {message}")
+                                self.stopFlag.set()
                             else:
                                 if len(message) > 0:
                                     self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
