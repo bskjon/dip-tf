@@ -1,5 +1,5 @@
 from io import TextIOWrapper
-import json, random, asyncio
+import json, random
 from threading import Thread
 import threading
 import traceback
@@ -55,42 +55,33 @@ class NetworkHookHandler:
         sys.stderr.flush()
             
             
-    async def read_pipe(fifo, nics, message_queue, message_cond, stdout, stderr, stopFlag):
-        while not stopFlag.is_set():
-            message = await fifo.readline()
-            if message:
-                message = message.strip()
-                if message in nics:
-                    stdout(f"DRUHook Received message from hook: {message}")
-                    with message_cond:
-                        message_queue.put(message)
-                        message_cond.notify_all()
-                elif message == "stop":
-                    stdout(f"DRUHook Received fifo stop: {message}")
-                    stopFlag.set()
-                else:
-                    if len(message) > 0:
-                        stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
-            else:
-                break
+
 
     def __openPipe(self) -> None:
         """_summary_
         """
         self.stdout(f"Opening pipe on {self.pipe_path}")
-
-        async def open_pipe_async():
-            with open(self.pipe_path, 'r') as fifo:
-                await self.read_pipe(fifo, self.nics, self.message_queue, self.message_cond, self.stdout, self.stderr, self.stopFlag)
-
-        loop = asyncio.get_event_loop()
-        try:
-            loop.run_until_complete(open_pipe_async())
-        except KeyboardInterrupt:
-            pass
-        finally:
-            loop.close()
-
+        with open(self.pipe_path, 'r+') as fifo:
+            while not self.stopFlag.is_set():
+                lines = fifo.readlines()
+                if lines:
+                    with self.message_mutex:
+                        for line in lines:
+                            message = line.strip()
+                            if (message and message in self.nics):
+                                self.stdout(f"[INFO]: DRUHook Received message from hook: {message}")
+                                self.message_queue.put(message)
+                            elif (message == "stop"):
+                                self.stdout(f"[INFO]: DRUHook Received fifo stop: {message}")
+                                self.stopFlag.set()
+                            else:
+                                if len(message) > 0:
+                                    self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
+                        self.message_cond.notify_all()
+                    self.stdout("[INFO]: Truncating message cache")
+                    fifo.truncate(0)
+                else:
+                    time.sleep(1)
         self.stdout(f"Pipe is closed!")
 
             
@@ -158,25 +149,24 @@ class NetworkHookHandler:
             self.__puller_add(nic)
                 
             
-    def __routingTable_modify(self, adapter: NetworkAdapter) -> None:
+    def __routingTable_modify(self, ipdata: IpData) -> None:
         """_summary_
         """
-        nic_rt_table = self.nics_rt[adapter.name]
-        self.stdout(f"Modifying routing for {adapter.name} on table {nic_rt_table}")
+        nic_rt_table = self.nics_rt[ipdata.name]
+        self.stdout(f"Modifying routing for {ipdata.name} on table {nic_rt_table}")
         
         Routing.flushRoutes(table=nic_rt_table) 
         Rules().flushRules(table=nic_rt_table)
         
         try:
-            ipData = adapter.getIpData()
-            Routing("main").deleteRoutes(ipData=ipData)
+            Routing("main").deleteRoutes(ipData=ipdata)
             
             
             rt = Routing(nic_rt_table)
-            rt.deleteRoutes(ipData=ipData)
-            rt.addRoutes(ipData=ipData)
+            rt.deleteRoutes(ipData=ipdata)
+            rt.addRoutes(ipData=ipdata)
             
-            Rules().addRule(table=nic_rt_table, source=ipData.ip)
+            Rules().addRule(table=nic_rt_table, source=ipdata.ip)
         except Exception as e:
             traceback.print_exc()
         
@@ -213,12 +203,12 @@ class NetworkHookHandler:
         isInInvalidState: bool = True
         while isInInvalidState or not self.stopFlag.is_set():
             time.sleep(waitTime)
-            adapter = NetworkAdapter(nic).getIpData()
-            isInInvalidState = not adapter.isValid()
-            print(adapter)
+            ipdata = NetworkAdapter(nic).getIpData()
+            isInInvalidState = not ipdata.isValid()
+            print(ipdata)
             if (isInInvalidState == False):
                 self.__puller_remove(nic)
-                self.__routingTable_modify(adapter)
+                self.__routingTable_modify(ipdata)
             else:
                 self.stdout(f"Pulling on {nic} in {waitTime}s")
         self.stdout(f"Pulling on {nic} has ended")
