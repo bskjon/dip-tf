@@ -47,10 +47,10 @@ class NetworkHookHandler:
         self.nics.extend(nics)
         self.nics_rt = nics_rt
             
-    def stdout(self, out:str):
+    def info(self, out:str):
         sys.stdout.write(f"{out}\n")
         sys.stdout.flush()
-    def stderr(self, out:str):
+    def error(self, out:str):
         sys.stderr.write(f"{out}\n")
         sys.stderr.flush()
             
@@ -59,8 +59,8 @@ class NetworkHookHandler:
 
     def __openPipe(self) -> None:
         """_summary_"""
-        self.stdout(f"Opening pipe on {self.pipe_path}")
-        with open(self.pipe_path, 'r+') as fifo:
+        self.info(f"Opening pipe on {self.pipe_path}")
+        with open(self.pipe_path, 'r') as fifo:
             while not self.stopFlag.is_set():
                 content = fifo.read()
                 lines = content.splitlines()
@@ -69,21 +69,21 @@ class NetworkHookHandler:
                         for line in lines:
                             message = line.strip()
                             if message and message in self.nics:
-                                self.stdout(f"[INFO]: DRUHook Received message from hook: {message}")
+                                self.info(f"[INFO]: DRUHook Received message from hook: {message}")
                                 self.message_queue.put(message)
                             elif message == "stop":
-                                self.stdout(f"[INFO]: DRUHook Received fifo stop: {message}")
+                                self.info(f"[INFO]: DRUHook Received fifo stop: {message}")
                                 self.stopFlag.set()
                             else:
                                 if len(message) > 0:
-                                    self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
+                                    self.error(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
                         self.message_cond.notify_all()
-                    self.stdout("[INFO]: Truncating message cache")
-                    fifo.seek(0)
-                    fifo.truncate()
+                    with open(self.pipe_path, "w") as fifo_truncate:
+                        self.info("[INFO]: Truncating message cache")
+                        fifo_truncate.write('')
                 else:
                     time.sleep(1)
-        self.stdout(f"Pipe is closed!")
+        self.info(f"Pipe is closed!")
 
 
             
@@ -105,10 +105,10 @@ class NetworkHookHandler:
     def dryrun(self) -> None:
         """Runs all operations on defined interfaces
         """
-        self.stdout("DRUHook Dryrun started!\n")
+        self.info("DRUHook Dryrun started!\n")
         for nic in self.nics:
             self.__processMessage(nic)
-        self.stdout("\DRUHook Dryrun completed!\n")
+        self.info("\DRUHook Dryrun completed!\n")
         
     def stop(self) -> None:
         """
@@ -123,9 +123,9 @@ class NetworkHookHandler:
         """
         """
         if self.__mainThread == threading.current_thread():
-            self.stderr("DRUHook has not been started in a separete thread!")
+            self.error("DRUHook has not been started in a separete thread!")
             raise Exception("DRUHook is started in main thread!")
-        self.stdout(f"DRUHook Thread Started for {targetName}")
+        self.info(f"DRUHook Thread Started for {targetName}")
         
         while not self.stopFlag.is_set():
             with self.message_mutex:
@@ -136,7 +136,7 @@ class NetworkHookHandler:
                     
                 message = self.message_queue.get()
                 if message == targetName:
-                    self.stdout(f"DRUHook Thread for {targetName} has received event")
+                    self.info(f"DRUHook Thread for {targetName} has received event")
                     self.__processMessage(message)
                 else:
                     self.message_queue.put(message)
@@ -147,7 +147,7 @@ class NetworkHookHandler:
         if (adapter.getIpData().isValid()):
             self.__routingTable_modify(adapter)
         else:
-            self.stdout(f"Adding puller on {nic}")
+            self.info(f"Adding puller on {nic}")
             self.__puller_add(nic)
                 
             
@@ -155,7 +155,7 @@ class NetworkHookHandler:
         """_summary_
         """
         nic_rt_table = self.nics_rt[ipdata.name]
-        self.stdout(f"Modifying routing for {ipdata.name} on table {nic_rt_table}")
+        self.info(f"Modifying routing for {ipdata.name} on table {nic_rt_table}")
         
         Routing.flushRoutes(table=nic_rt_table) 
         Rules().flushRules(table=nic_rt_table)
@@ -180,7 +180,7 @@ class NetworkHookHandler:
         """
         waitTime: int = 60
         if len(list(filter(lambda x: x.name == nic, self.nicsPullerThreads))) != 0:
-            self.stdout(f"Found existing thread for {nic} skipping..")
+            self.info(f"Found existing thread for {nic} skipping..")
             return
         thread = Thread(
             name=nic,
@@ -200,7 +200,7 @@ class NetworkHookHandler:
     def __puller_thread(self, nic: str, waitTime: int = 60) -> None:
         """Thread for pulling on adapter
         """
-        self.stdout(f"Starting pulling on {nic}")
+        self.info(f"Starting pulling on {nic}")
         
         isInInvalidState: bool = True
         while isInInvalidState or not self.stopFlag.is_set():
@@ -212,6 +212,6 @@ class NetworkHookHandler:
                 self.__puller_remove(nic)
                 self.__routingTable_modify(ipdata)
             else:
-                self.stdout(f"Pulling on {nic} in {waitTime}s")
-        self.stdout(f"Pulling on {nic} has ended")
+                self.info(f"Pulling on {nic} in {waitTime}s")
+        self.info(f"Pulling on {nic} has ended")
         
