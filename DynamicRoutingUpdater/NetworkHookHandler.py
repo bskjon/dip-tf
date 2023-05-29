@@ -93,7 +93,7 @@ class NetworkHookHandler:
                                 self.stopFlag.set()
             pass
         finally:
-            epoll.unregister(self.pipe_fd)
+            epoll.unregister(pipe_fd)
             epoll.close()
         self.stdout(f"Pipe is closed!")
         
@@ -150,6 +150,7 @@ class NetworkHookHandler:
                     self.__processMessage(message)
                 else:
                     self.message_queue.put(message)
+            self.stdout("Hello from DRU thread")
             time.sleep(1)
                 
                  
@@ -216,7 +217,7 @@ class NetworkHookHandler:
         self.stdout(f"Starting pulling on {nic}")
         
         isInInvalidState: bool = True
-        while isInInvalidState:
+        while isInInvalidState or not self.stopFlag.is_set():
             time.sleep(waitTime)
             adapter = NetworkAdapter(nic).getIpData()
             isInInvalidState = not adapter.isValid()
