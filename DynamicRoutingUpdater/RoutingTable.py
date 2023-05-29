@@ -34,7 +34,7 @@ class RoutingTable:
     
     
     @staticmethod
-    def getRoutingTables() -> list[str]:
+    def getRoutingTables() -> List[str]:
         """Read routing table to list
         """
         rt_entries: List[str] = []
