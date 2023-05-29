@@ -14,7 +14,8 @@ setup(
     packages=["DynamicRoutingUpdater"],
     install_requires=[
         "netifaces>=0.11.0",
-        "netaddr>=0.8.0"
+        "netaddr>=0.8.0",
+        "asyncio>=3.4.3"
     ],
     version=version.__version__,
     description="""

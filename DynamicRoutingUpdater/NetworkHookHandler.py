@@ -1,5 +1,5 @@
 from io import TextIOWrapper
-import json, random
+import json, random, asyncio
 from threading import Thread
 import threading
 import traceback
@@ -55,44 +55,43 @@ class NetworkHookHandler:
         sys.stderr.flush()
             
             
+    async def read_pipe(fifo, nics, message_queue, message_cond, stdout, stderr, stopFlag):
+        while not stopFlag.is_set():
+            message = await fifo.readline()
+            if message:
+                message = message.strip()
+                if message in nics:
+                    stdout(f"DRUHook Received message from hook: {message}")
+                    with message_cond:
+                        message_queue.put(message)
+                        message_cond.notify_all()
+                elif message == "stop":
+                    stdout(f"DRUHook Received fifo stop: {message}")
+                    stopFlag.set()
+                else:
+                    if len(message) > 0:
+                        stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
+            else:
+                break
 
     def __openPipe(self) -> None:
         """_summary_
         """
         self.stdout(f"Opening pipe on {self.pipe_path}")
 
+        async def open_pipe_async():
+            with open(self.pipe_path, 'r') as fifo:
+                await self.read_pipe(fifo, self.nics, self.message_queue, self.message_cond, self.stdout, self.stderr, self.stopFlag)
+
+        loop = asyncio.get_event_loop()
         try:
-            while not self.stopFlag.is_set():
-                try:
-                    with open(self.pipe_path, 'r') as file:
-                        messages = file.readlines()
-
-                    for message in messages:
-                        message = message.strip()
-                        if message in self.nics:
-                            self.stdout(f"DRUHook Received message from hook: {message}")
-                            with self.message_mutex:
-                                self.message_queue.put(message)
-                                self.message_cond.notify_all()
-                        elif message == "stop":
-                            self.stdout(f"DRUHook Received stop: {message}")
-                            self.stopFlag.set()
-                        else:
-                            if len(message) > 0:
-                                self.stderr(f"DRUHook is ignoring: {message} as it expects one of your predefined values or stop")
-
-                    # Tøm pipen ved å slette innholdet
-                    open(self.pipe_path, 'w').close()
-
-                except OSError as e:
-                    self.stderr(f"Error reading from pipe: {e}")
-                    self.stopFlag.set()
-
-                # Legg til en liten pause for å begrense CPU-bruken
-                time.sleep(0.01)
-
+            loop.run_until_complete(open_pipe_async())
+        except KeyboardInterrupt:
+            pass
         finally:
-            self.stdout(f"Pipe is closed!")
+            loop.close()
+
+        self.stdout(f"Pipe is closed!")
 
             
                 
