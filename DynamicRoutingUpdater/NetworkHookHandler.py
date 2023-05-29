@@ -2,6 +2,7 @@ from io import TextIOWrapper
 import json, random
 from threading import Thread
 import threading
+import traceback
 import queue
 from typing import List
 import os, sys, time, re, errno
@@ -149,15 +150,18 @@ class NetworkHookHandler:
         Routing.flushRoutes(table=nic_rt_table) 
         Rules().flushRules(table=nic_rt_table)
         
-        ipData = adapter.getIpData()
-        Routing("main").deleteRoutes(ipData=ipData)
-        
-        
-        rt = Routing(nic_rt_table)
-        rt.deleteRoutes(ipData=ipData)
-        rt.addRoutes(ipData=ipData)
-        
-        Rules().addRule(table=nic_rt_table, source=ipData.ip)
+        try:
+            ipData = adapter.getIpData()
+            Routing("main").deleteRoutes(ipData=ipData)
+            
+            
+            rt = Routing(nic_rt_table)
+            rt.deleteRoutes(ipData=ipData)
+            rt.addRoutes(ipData=ipData)
+            
+            Rules().addRule(table=nic_rt_table, source=ipData.ip)
+        except Exception as e:
+            traceback.print_exc()
         
             
     nicsPullerThreads: List[Thread] = []
