@@ -30,6 +30,7 @@ class Routing:
         """
         if (table is None):
             raise ValueError(f"table is {table}, None is not supported!")
+        self.table = table
         
     @staticmethod
     def getRoutes(table: str = None) -> list[Route]:
@@ -86,7 +87,5 @@ class Routing:
             "ip route del default via {} dev {} src {} table {}".format(ipData.gateway, ipData.name, ipData.ip, self.table),
             "ip route del {} dev {} src {} table {}".format(ipData.gateway, ipData.name, ipData.ip, self.table)
         ]
-        if self.table != "main" and self.table != "default":
-            commands.append("ip route flush table {}".format(self.table))
         for command in commands:
             operationOut(command)

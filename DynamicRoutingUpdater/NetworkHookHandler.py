@@ -150,6 +150,7 @@ class NetworkHookHandler:
         ipData = adapter.getIpData()
         Routing("main").deleteRoutes(ipData=ipData)
         
+        Routing.flushRoutes(nic_rt_table)
         rt = Routing(nic_rt_table)
         rt.deleteRoutes(ipData=ipData)
         rt.addRoutes(ipData=ipData)
