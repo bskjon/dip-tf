@@ -4,6 +4,15 @@ from typing import Optional
 from datetime import datetime
 from .objects import IpData
 
+def stdout(out:str):
+    sys.stdout.write(f"{out}\n")
+    sys.stdout.flush()
+    
+def stderr(out:str):
+    sys.stderr.write(f"{out}\n")
+    sys.stderr.flush() 
+
+
 class NetworkAdapter:
     name: str = None # Network Adapter name
 
@@ -38,17 +47,17 @@ class NetworkAdapter:
                     if self.name in entry[1]:
                         return entry[0]
             except:
-                print("Exception")
+                stderr(f"[ERROR]: getGateway => {gw}")
                 pass
         return None
     
     def getNetmask(self) -> Optional[str]:
+        gw = self.getGateway()
         try:
-            gw = self.getGateway()
             netmask = gw[:gw.rfind(".")+1]+"0"
             return netmask
         except:
-            print("Exception")
+            stderr(f"[ERROR]: getNetmask => {gw}")
             pass
         return None
 
