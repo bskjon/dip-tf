@@ -3,23 +3,17 @@ import subprocess
 import json
 import sys, os
 from .objects import Route, IpData
-
-def stdout(out:str):
-    sys.stdout.write(f"{out}\n")
-    sys.stdout.flush()
-    
-def stderr(out:str):
-    sys.stderr.write(f"{out}\n")
-    sys.stderr.flush() 
+import logging
+   
     
 def operationOut(command: str = None) -> None:
     result = os.system(command)
     if result != 0:
-        stderr(f"[FAILED]: {command}\n\tResult: {result}")
+        logging.error(f"{command}\n\tResult: {result}")
     elif result == 512:
-        stdout(f"[PARTIAL]: {command}\n\tProvided the result: {result}")
+        logging.warn(f"{command}\n\tProvided the result: {result}")
     else:
-        stdout(f"[SUCCESS]: {command}")
+        logging.info(f"{command}")
 
         
 
@@ -58,7 +52,7 @@ class Routing:
                 )
                 result.append(route)
         except json.JSONDecodeError:
-            stderr(f"No result for {query}")
+            logging.error(f"No result for {query}")
             pass
         return result
     

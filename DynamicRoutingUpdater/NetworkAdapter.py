@@ -1,17 +1,8 @@
+import logging
 import netifaces
 from netaddr import IPAddress
 from typing import Optional
-from datetime import datetime
 from .objects import IpData
-import sys
-
-def stdout(out:str):
-    sys.stdout.write(f"{out}\n")
-    sys.stdout.flush()
-    
-def stderr(out:str):
-    sys.stderr.write(f"{out}\n")
-    sys.stderr.flush() 
 
 
 class NetworkAdapter:
@@ -48,7 +39,7 @@ class NetworkAdapter:
                     if self.name in entry[1]:
                         return entry[0]
             except:
-                stderr(f"[ERROR]: getGateway => {gw}")
+                logging.error(f"getGateway => {gw}")
                 pass
         return None
     
@@ -58,7 +49,7 @@ class NetworkAdapter:
             netmask = gw[:gw.rfind(".")+1]+"0"
             return netmask
         except:
-            stderr(f"[ERROR]: getNetmask => {gw}")
+            logging.error(f"getNetmask => {gw}")
             pass
         return None
 

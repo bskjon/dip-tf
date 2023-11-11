@@ -1,3 +1,4 @@
+import logging
 import threading
 import time, sys
 from threading import Thread
@@ -9,13 +10,6 @@ from .Rules import Rules
 class NetworkInfoWatcher:
     """
     """
-    
-    def stdout(self, out:str):
-        sys.stdout.write(f"{out}\n")
-        sys.stdout.flush()
-    def stderr(self, out:str):
-        sys.stderr.write(f"{out}\n")
-        sys.stderr.flush()
     
     adapter__rt: dict = {}
     watchers: List[Thread] = []
@@ -63,7 +57,7 @@ class NetworkInfoWatcher:
                     with open("/tmp/dru-hook", 'w') as fifo:
                         fifo.write(name)
                 except:
-                    self.stderr("Failed to adjust routes..")
+                    logging.error("Failed to adjust routes..")
             
             if (self.__ruleValidation(device=name, table=table) == False):
                 Rules().addRule(ipInfo.ip_address, table=table)

@@ -1,20 +1,13 @@
 import sys, os, re
 from typing import List
-
-
-def stdout(out:str):
-    sys.stdout.write(f"{out}\n")
-    sys.stdout.flush()
-def stderr(out:str):
-    sys.stderr.write(f"{out}\n")
-    sys.stderr.flush() 
+import logging
 
 def operationOut(command: str = None) -> None:
     result = os.system(command)
     if result != 0:
-        stderr(f"[FAILED]: {command}\n\tResult: {result}")
+        logging.error(f"{command}\n\tResult: {result}")
     else:
-        stdout(f"[SUCCESS]: {command}")
+        logging.info(f"{command}")
 
 class RoutingTable:
     """"""
@@ -44,7 +37,7 @@ class RoutingTable:
                 if len(line.strip("\t\r\n")) > 0:
                     rt_entries.append(line.strip("\n"))
                 else:
-                    sys.stdout.write("Skipping empty line in rt_tables!\n")
+                    logging.info("Skipping empty line in rt_tables!")
         return rt_entries
     
     def deleteMyEntries(self) -> None:
@@ -53,7 +46,7 @@ class RoutingTable:
         escapedTableName = re.escape(self.tableBaseName)
         directTable = re.compile(r"[0-9]+\t{}[0-9]+(?!\w)".format(escapedTableName), re.IGNORECASE)
                 
-        sys.stdout.write("Removing old tables..\n")
+        logging.info("Removing old tables..")
         updatedTables: List[str] = []
         for line in RoutingTable.getRoutingTables():
             if directTable.search(line) == None:
@@ -85,10 +78,10 @@ class RoutingTable:
             tableEntry: str = "{}\t{}".format(tableId, ntableName)
             appendableTables.append(tableEntry)
             configuredTables[adapter] = ntableName
-        sys.stdout.write("Creating new tables\n")
+        logging.info("Creating new tables")
         with open(self.rt_table_file, "a") as file:
             for table in appendableTables:
                 file.write("{}\n".format(table))
-                sys.stdout.write(f"{table}\n")
+                logging.info(f"{table}")
         return configuredTables
         

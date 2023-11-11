@@ -1,3 +1,4 @@
+import logging
 from io import TextIOWrapper
 import json
 import random
@@ -13,22 +14,17 @@ from .Rules import Rules
 
 from .NetworkHookHandler import NetworkHookHandler
 from .NetworkInfoWatcher import NetworkInfoWatcher
+from .RouteAndRuleObserver import RouteAndRuleObserverManager
 import os, sys, time, re, errno
 import netifaces
        
-def stdout(out:str):
-    sys.stdout.write(f"{out}\n")
-    sys.stdout.flush()
-    
-def stderr(out:str):
-    sys.stderr.write(f"{out}\n")
-    sys.stderr.flush() 
 
 class DynamicRoutingUpdater:
     """DynamicRoutingUpdater, modify routing table
     """
     dipwa: NetworkHookHandler = None
     niw: NetworkInfoWatcher = None
+    rrm_observer: RouteAndRuleObserverManager = None
     
     configuredTables: dict = {}
     tableName = "direct"
@@ -53,21 +49,21 @@ class DynamicRoutingUpdater:
         """
         """
         sys.stdout.write(f"{self.flipper()}\n")
-        sys.stdout.write(f"Version: {__version__}\n")
-        sys.stdout.write("Loading up Dynamic Routing Updater\n")
-        sys.stdout.write("Reading configuration\n")
+        logging.info(f"Version: {__version__}")
+        logging.info("Loading up Dynamic Routing Updater")
+        logging.info("Reading configuration")
         reference = json.load(open(reference))
         self.nics.extend(reference["adapter"])
         desiredTableName: str = reference["tableName"]
         if desiredTableName != "":
-            sys.stdout.write(f"Using desired table name {desiredTableName}\n")
+            logging.info(f"Using desired table name {desiredTableName}")
             self.tableName = desiredTableName
         else:
-            sys.stdout.write(f"Using DEFAULT table name {self.tableName}\n")
+            logging.info(f"Using DEFAULT table name {self.tableName}")
             
-        sys.stdout.write("Dynamic Routing Updater will watch the following:\n")
+        logging.info("Dynamic Routing Updater will watch the following:")
         for toWatch in self.nics:
-            sys.stdout.write(f"\t{toWatch}\n")    
+            logging.info(f"\t{toWatch}")    
         
         signal.signal(signal.SIGINT, self.__stop)
     
@@ -75,15 +71,15 @@ class DynamicRoutingUpdater:
         """_summary_
         """
         availableNetworkAdapters = netifaces.interfaces()
-        stdout("[INFO]: Running pre-check")
+        logging.info("Running pre-check")
         if set(self.nics).issubset(set(availableNetworkAdapters)):
-            stdout("[OK]: Configured interfaces are present!")
+            logging.info("Configured interfaces are present!")
         else:
-            stderr("[ERROR]: Configured interfaces are not present!")
+            logging.error("Configured interfaces are not present!")
             missingNetworkAdapters = [verdi for verdi in self.nics if verdi not in availableNetworkAdapters]
             for missing in missingNetworkAdapters:
-                stderr(f"\t{missing}")
-            stdout("[SUGGESTION]: Verify that your configuration corresponds to your available network adapters")
+                logging.error(f"\t{missing}")
+            logging.warn("Verify that your configuration corresponds to your available network adapters")
             exit(1)
         
         
@@ -93,56 +89,58 @@ class DynamicRoutingUpdater:
         
         for device, table in self.configuredTables.items():
             Routing.addRoute_Default(device=device, table=table)
-        stdout("Setup completed")
+        logging.info("Setup completed")
                 
     def start(self) -> None:
         """
         """
-        sys.stdout.write("Updating and preparing Routing Table entries\n")
+        logging.info("Updating and preparing Routing Table entries")
         self.setup()
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
-            sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
+            logging.error("Configuration is missing network adapters or configured tables..")
             return
         
         for device, table in self.configuredTables.items():
             Routing.flushRoutes(table)
         
-        sys.stdout.write("Starting DRUHook\n")
+        logging.info("Starting DRUHook")
         self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
         self.dipwa.start()
         self.niw = NetworkInfoWatcher(self.configuredTables)
+        self.rrm_observer = RouteAndRuleObserverManager(self.configuredTables)
         try:
             for nic in self.nics:
                 with open("/tmp/dru-hook", 'w') as fifo:
                     fifo.write(nic)
                 time.sleep(10)
         except:
-            sys.stderr("[ERROR]: Failed to adjust routes..")
+            logging.error("Failed to adjust routes..")
         
-        self.niw.start()
+        #self.niw.start()
+        self.rrm_observer.execute()
         
         
     def dryrun(self) -> None:
         """
         """
         
-        sys.stdout.write("Starting DRU dryrun\n")
-        sys.stdout.write("Updating and preparing Routing Table entries\n")
+        logging.info("Starting DRU dryrun")
+        logging.info("Updating and preparing Routing Table entries")
         self.setup()
     
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
-            sys.stderr.write("Configuration is missing network adapters or configured tables..\n")
+            sys.stderr.write("Configuration is missing network adapters or configured tables..")
             return
         
-        sys.stdout.write("Starting DRUHook\n")
+        logging.info("Starting DRUHook\n")
         self.dipwa = NetworkHookHandler(self.nics, self.configuredTables)
         self.dipwa.dryrun()
-        sys.stdout.write("\nDRU dryrun ended\n")
+        logging.info("\nDRU dryrun ended\n")
         
     def __stop(self, sig, _):
-        sys.stdout.write(f"Signal {sig} received. Cleaning up and exiting gracefully...\n")
+        logging.info(f"Signal {sig} received. Cleaning up and exiting gracefully...")
         self.stop()
         
     def stop(self) -> None:
@@ -151,4 +149,4 @@ class DynamicRoutingUpdater:
         for device, table in self.configuredTables.items():
             Routing.flushRoutes(table=table)
             Rules.flushRules(device=device, table=table)
-        sys.stdout.write("Stopped DRUHook and removed created Routing Table entries\n")
+        logging.info("Stopped DRUHook and removed created Routing Table entries")
