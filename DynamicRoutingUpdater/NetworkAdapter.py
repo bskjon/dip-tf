@@ -4,6 +4,7 @@ from netaddr import IPAddress
 from typing import Optional
 from .objects import IpData
 
+logging.basicConfig(level=logging.INFO)
 
 class NetworkAdapter:
     name: str = None # Network Adapter name

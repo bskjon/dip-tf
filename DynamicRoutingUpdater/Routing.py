@@ -5,6 +5,7 @@ import sys, os
 from .objects import Route, IpData
 import logging
    
+logging.basicConfig(level=logging.INFO)
     
 def operationOut(command: str = None) -> None:
     result = os.system(command)

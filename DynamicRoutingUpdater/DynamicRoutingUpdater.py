@@ -17,6 +17,8 @@ from .NetworkInfoWatcher import NetworkInfoWatcher
 from .RouteAndRuleObserver import RouteAndRuleObserverManager
 import os, sys, time, re, errno
 import netifaces
+
+logging.basicConfig(level=logging.INFO)
        
 
 class DynamicRoutingUpdater:

@@ -11,6 +11,7 @@ from .Routing import Routing
 from .Rules import Rules
 from .NetworkAdapter import NetworkAdapter
 
+logging.basicConfig(level=logging.INFO)
 
 class NetworkHookHandler:
     """

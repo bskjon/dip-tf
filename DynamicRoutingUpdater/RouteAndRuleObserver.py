@@ -10,6 +10,7 @@ from .AddressInfo import AddressInfo
 from .Routing import Routing, Route
 from .Rules import Rules
 
+logging.basicConfig(level=logging.INFO)
 
 class RouteAndRuleObserverManager():
     """"""

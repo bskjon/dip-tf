@@ -2,6 +2,8 @@ import sys, os, re
 from typing import List
 import logging
 
+logging.basicConfig(level=logging.INFO)
+
 def operationOut(command: str = None) -> None:
     result = os.system(command)
     if result != 0:

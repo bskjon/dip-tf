@@ -5,6 +5,7 @@ import sys, os
 from .objects import Rule
 from typing import List
 
+logging.basicConfig(level=logging.INFO)
     
 def operationOut(command: str = None) -> None:
     result = os.system(command)
