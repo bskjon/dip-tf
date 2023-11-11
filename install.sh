@@ -39,7 +39,35 @@ fi
 sudo apt install -y python3-pip
 
 echo "Installing dependencies"
-pip install pyDynamicRoutingUpdater -U
+
+# Sett navnet på pakken
+package_name="pyDynamicRoutingUpdater"
+
+# Sjekk om pakken er installert
+if python -c "import $package_name" &> /dev/null; then
+    # Lagre gjeldende versjon
+    current_version=$(pip show $package_name | grep Version | awk '{print $2}')
+    echo "Gjeldende versjon av $package_name er $current_version"
+else
+    echo "$package_name er ikke installert."
+fi
+
+# Installer eller oppdater pakken
+pip install $package_name -U
+
+# Sjekk om installasjonen var vellykket
+if [ $? -eq 0 ]; then
+    # Sjekk om versjonsnummeret har endret seg
+    new_version=$(pip show $package_name | grep Version | awk '{print $2}')
+    if [ "$current_version" != "$new_version" ]; then
+        echo "$package_name ble oppdatert fra versjon $current_version til $new_version."
+    else
+        echo "$package_name var allerede på den nyeste versjonen $new_version."
+    fi
+else
+    echo "Feil under installasjon eller oppdatering av $package_name. Avbryter."
+    exit 1
+fi
 
 
 

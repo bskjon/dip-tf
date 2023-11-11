@@ -131,7 +131,7 @@ class DynamicRoutingUpdater:
     
         
         if len(self.nics) == 0 or len(self.configuredTables) == 0:
-            sys.stderr.write("Configuration is missing network adapters or configured tables..")
+            logging.error("Configuration is missing network adapters or configured tables..")
             return
         
         logging.info("Starting DRUHook\n")
