@@ -93,7 +93,7 @@ class RouteObserver(__Shared):
         """
         """
         while not self.stopFlag.is_set():
-            if (self.__routeValidation(table=self.rt_name, device=self.nic_name) == False):
+            if (self.__routeValidation(table=self.rt_name) == False):
                 try:
                     with open("/tmp/dru-hook", 'w') as fifo:
                         fifo.write(self.nic_name)
@@ -150,7 +150,7 @@ class RuleObserver(__Shared):
 
     def monitor(self) -> None:
         while not self.stopFlag.is_set():
-            if (self.__ruleValidation(table=self.rt_name, device=self.nic_name) == False):
+            if (self.__ruleValidation(table=self.rt_name) == False):
                 addri = self.addrInfo.read()
                 Rules().addRule(addri.ip_address, table=self.rt_name)
 
