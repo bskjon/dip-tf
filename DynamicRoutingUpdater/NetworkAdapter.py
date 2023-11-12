@@ -35,15 +35,13 @@ class NetworkAdapter:
         for gw in gws:
             try:
                 gwstr: str = str(gw)
-                if 'default' in gwstr:
-                    continue
-                entries = gws[gw]
-                for entry in entries:
-                    if self.name in entry[1]:
-                        return entry[0]
+                if 'default' not in gwstr:
+                    entries = gws[gw]
+                    for entry in entries:
+                        if self.name in entry[1]:
+                            return entry[0]
             except:
                 logging.error(f"getGateway => {gw}")
-                pass
         # If this is hit, then it could not find the gateway using traditional means
         netst = self.parseNetstat(nic_name=self.name)
         routable = [line for line in netst if line.flags.lower() == "G".lower()]
