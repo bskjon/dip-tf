@@ -47,7 +47,7 @@ class NetworkAdapter:
         # If this is hit, then it could not find the gateway using traditional means
         netst = self.parseNetstat(nic_name=self.name)
         routable = [line for line in netst if line.flags.lower() == "G".lower()]
-        use_route: Netstated = next(routable, None)
+        use_route: Netstated = next(iter(routable), None)
         if (use_route is not None):
             return use_route.gateway
         return None
