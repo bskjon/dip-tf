@@ -43,8 +43,9 @@ class NetworkAdapter:
             except:
                 logging.error(f"getGateway => {gw}")
         # If this is hit, then it could not find the gateway using traditional means
+        logging.info("Using fallback to get gateway")
         netst = self.parseNetstat(nic_name=self.name)
-        routable = [line for line in netst if line.flags.lower() == "G".lower()]
+        routable = [line for line in netst if "G".lower() in line.flags.lower()]
         use_route: Netstated = next(iter(routable), None)
         if (use_route is not None):
             return use_route.gateway
