@@ -1,8 +1,10 @@
 import logging
+import re
 import netifaces
 from netaddr import IPAddress
 from typing import Optional
-from .objects import IpData
+from .objects import IpData, Netstated
+import subprocess
 
 logging.basicConfig(level=logging.INFO)
 
@@ -42,6 +44,12 @@ class NetworkAdapter:
             except:
                 logging.error(f"getGateway => {gw}")
                 pass
+        # If this is hit, then it could not find the gateway using traditional means
+        netst = self.parseNetstat(nic_name=self.name)
+        routable = [line for line in netst if line.flags.lower() == "G".lower()]
+        use_route: Netstated = next(routable, None)
+        if (use_route is not None):
+            return use_route.gateway
         return None
     
     def getNetmask(self) -> Optional[str]:
@@ -79,4 +87,31 @@ class NetworkAdapter:
             pass
         return None
 
-   
+
+
+    def parseNetstat(self, nic_name: str) -> list[Netstated]:
+        result = subprocess.getoutput(f"netstat -r -n -e -4 | grep {nic_name}").split("\n")
+        if (len(result) == 0):
+            return []
+        else:
+            entries: list[Netstated] = []
+            for line in result:
+                try:
+                    columns = re.split(r'\s+', line)
+                    entries.append(
+                        Netstated(
+                            destination=columns[0],
+                            gateway=columns[1],
+                            genmask=columns[2],
+                            flags=columns[3],
+                            metric=columns[4],
+                            ref=columns[5],
+                            use=columns[6],
+                            iface=columns[7]
+                        )
+                    )
+                except:
+                    logging.exception("Failed to parse netstat")
+            return entries
+
+    

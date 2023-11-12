@@ -85,4 +85,23 @@ class IpInfo:
     def __str__(self):
         return "\tIPv4 => {},\n\t Prefix => {},\n\t isDHCP => {},\n\t TTL => {}\n".format(self.ip_address, self.ip_address_prefix, self.is_dynamic, self.valid_life_time_in_sec())
     
-    
+
+class Netstated:
+    destination: str = None
+    gateway: str = None
+    genmask: str = None
+    flags: str = None
+    metric: str = None
+    ref: str = None
+    use: str = None
+    iface: str = None
+
+    def __init__(self, destination, gateway, genmask, flags, metric, ref, use, iface) -> None:
+        self.destination = destination
+        self.gateway = gateway
+        self.genmask = genmask
+        self.flags = flags
+        self.metric = metric
+        self.ref = ref
+        self.use = use
+        self.iface = iface
