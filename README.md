@@ -48,6 +48,12 @@ This will also change and modify your current routes, and <strong>WILL NOT BE RE
 Usually a reboot is enough to get it recreated, as the code does not include persistance
 
 # How to install
+## Dependencies
+```shell
+net-tools
+```
+
+
 To install and start DRU
 - Clone the project 
 - Modify reference.json
