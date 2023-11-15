@@ -89,7 +89,8 @@ class NetworkAdapter:
 
 
     def parseNetstat(self, nic_name: str) -> list[Netstated]:
-        result = subprocess.getoutput(f"netstat -r -n -e -4 | grep {nic_name}").split("\n")
+        netstat_out = subprocess.getoutput(f"netstat -r -n -e -4 | grep {nic_name}").split("\n")
+        result = [s for s in netstat_out if s]
         if (len(result) == 0):
             return []
         else:
