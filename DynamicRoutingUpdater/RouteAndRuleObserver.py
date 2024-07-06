@@ -3,6 +3,7 @@ import logging
 import threading
 from threading import Thread
 import time
+from typing import List
 
 from .NetworkAdapter import NetworkAdapter
 
@@ -15,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 class RouteAndRuleObserverManager():
     """"""
     adapter__rt: dict = {}
-    watchers: list[Thread] = []
+    watchers: List[Thread] = []
 
     def __init__(self, adapter__rt: dict) -> None:
         """"""
