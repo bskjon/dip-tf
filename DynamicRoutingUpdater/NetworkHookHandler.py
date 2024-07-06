@@ -185,9 +185,12 @@ class NetworkHookHandler:
     def __puller_remove(self, name: str) -> None:
         """Removes puller
         """
-        targetThread = next(filter(lambda x: x.name == name, self.nicsPullerThreads))
-        self.nicsPullerThreads.remove(targetThread)
-        
+        try:
+            if (len(self.nicsPullerThreads) > 0):
+                targetThread = next(filter(lambda x: x.name == name, self.nicsPullerThreads))
+                self.nicsPullerThreads.remove(targetThread)
+        except Exception as e:
+            traceback.print_exc()
     
     def __puller_thread(self, nic: str, waitTime: int = 60) -> None:
         """Thread for pulling on adapter
