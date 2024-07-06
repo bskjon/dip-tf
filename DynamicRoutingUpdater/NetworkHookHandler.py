@@ -190,7 +190,8 @@ class NetworkHookHandler:
                 targetThread = next(filter(lambda x: x.name == name, self.nicsPullerThreads))
                 self.nicsPullerThreads.remove(targetThread)
         except Exception as e:
-            traceback.print_exc()
+            logging.log("Exception occured when attempting to remove a thread from pullers")
+            logging.exception(e)
     
     def __puller_thread(self, nic: str, waitTime: int = 60) -> None:
         """Thread for pulling on adapter
