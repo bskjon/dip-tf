@@ -2,7 +2,7 @@ import logging
 import re
 import netifaces
 from netaddr import IPAddress
-from typing import Optional
+from typing import List, Optional
 from .objects import IpData, Netstated
 import subprocess
 
@@ -88,13 +88,13 @@ class NetworkAdapter:
 
 
 
-    def parseNetstat(self, nic_name: str) -> list[Netstated]:
+    def parseNetstat(self, nic_name: str) -> List[Netstated]:
         netstat_out = subprocess.getoutput(f"netstat -r -n -e -4 | grep {nic_name}").split("\n")
         result = [s for s in netstat_out if s]
         if (len(result) == 0):
             return []
         else:
-            entries: list[Netstated] = []
+            entries: List[Netstated] = []
             for line in result:
                 try:
                     columns = re.split(r'\s+', line)
