@@ -30,6 +30,7 @@ prerequisites() {
 
     sudo apt install -y python3-pip python3-venv
     mkdir --parents /usr/local/dynamic-routing-updater/
+    sudo chmod -R 0777 /usr/local/dynamic-routing-updater/
     python3 -m venv /usr/local/dynamic-routing-updater/venv
     source /usr/local/dynamic-routing-updater/venv/bin/activate
 
@@ -233,6 +234,8 @@ EOL
 
     echo "Done!"
  #   journalctl -exfu dynamic-routing-updater
+    sudo chmod -R 755 /usr/local/dynamic-routing-updater/
+
 }
 
 
