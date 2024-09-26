@@ -144,6 +144,7 @@ class DynamicRoutingUpdater:
     def __stop(self, sig, _):
         logging.info(f"Signal {sig} received. Cleaning up and exiting gracefully...")
         self.stop()
+        exit(0)
         
     def stop(self) -> None:
         self.dipwa.stop()

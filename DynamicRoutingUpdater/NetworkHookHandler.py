@@ -106,9 +106,11 @@ class NetworkHookHandler:
         """
         with open(self.pipe_path, 'w') as fifo:
             fifo.write('stop')
+        logging.info("Setting stop flag")
         self.stopFlag.set()
         for thread in self.hookThreads:
             thread.join()
+        logging.info("Threads stopped..")            
         
     def __onThreadStart(self, targetName: str) -> None:
         """
