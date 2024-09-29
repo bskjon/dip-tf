@@ -188,7 +188,7 @@ IFACE = $1
 STATUS = $2
 
 
-echo "DynamicIpWatcherAction: Registered change to network adpater $IFACE"
+echo "DRU - DynamicIpWatcherAction: Registered change to network adpater $IFACE"
 
 if [ ! -z $IFACE ]; then
     echo -e "$IFACE\n" >> /tmp/dru-hook
